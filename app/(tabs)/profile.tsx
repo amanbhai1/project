@@ -81,9 +81,12 @@ export default function ProfileScreen() {
             try {
               await signOut();
               showMessage('Signed out successfully', 'success');
-              router.replace('/auth/login');
             } catch (error) {
-              showMessage('Failed to sign out', 'error');
+              console.error('Sign out error:', error);
+              showMessage('Signed out locally', 'info');
+            } finally {
+              // Always navigate to login regardless of signOut success/failure
+              router.replace('/auth/login');
             }
           },
         },

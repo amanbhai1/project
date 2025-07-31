@@ -314,10 +314,7 @@ export default function ProfileScreen() {
             <View style={styles.signOutContainer}>
               <Button
                 title="Sign Out"
-                onPress={() => {
-                  console.log('Direct sign out button clicked');
-                  router.replace('/auth/login');
-                }}
+                onPress={handleSignOut}
                 variant="outlined"
                 leftIcon={<LogOut size={20} color={colors.error} />}
                 style={[styles.signOutButton, { borderColor: colors.error }]}

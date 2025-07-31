@@ -2,10 +2,6 @@ import { useState, useEffect } from 'react';
 import { Note, CreateNoteData, UpdateNoteData } from '@/types/Note';
 import { notesService } from '@/services/notesService';
 import { useAuth } from '@/contexts/AuthContext';
-import { ensureFirebaseInitialized } from '@/config/firebaseInit';
-
-// Add at the top of the hook file
-ensureFirebaseInitialized();
 
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);

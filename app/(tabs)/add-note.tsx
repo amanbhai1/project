@@ -146,7 +146,11 @@ export default function AddNoteScreen() {
       
       setTimeout(() => {
         if (mountedRef.current) {
-          router.back();
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)/');
+          }
         }
       }, 1000);
     } catch (error) {

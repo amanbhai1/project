@@ -103,9 +103,9 @@ export default function NotesScreen() {
     router.push('/(tabs)/add-note');
   };
 
-  const renderNote = ({ item, index }: { item: Note; index: number }) => {
+  const NoteItem = React.memo(({ item, index }: { item: Note; index: number }) => {
     const animatedValue = useRef(new Animated.Value(0)).current;
-    
+
     React.useEffect(() => {
       Animated.timing(animatedValue, {
         toValue: 1,
@@ -138,7 +138,11 @@ export default function NotesScreen() {
         />
       </Animated.View>
     );
-  };
+  });
+
+  const renderNote = ({ item, index }: { item: Note; index: number }) => (
+    <NoteItem item={item} index={index} />
+  );
 
   const renderEmptyState = () => (
     <Animated.View 

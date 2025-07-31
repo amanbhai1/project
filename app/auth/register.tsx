@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, Text, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -105,11 +105,14 @@ export default function RegisterScreen() {
               <Text style={[styles.loginText, { color: colors.onSurfaceVariant }]}>
                 Already have an account?{' '}
               </Text>
-              <Link href="/auth/login" asChild>
+              <TouchableOpacity 
+                onPress={() => router.push('/auth/login')}
+                style={styles.linkContainer}
+              >
                 <Text style={[styles.loginLink, { color: colors.primary }]}>
                   Sign in
                 </Text>
-              </Link>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -163,6 +166,10 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 14,
+  },
+  linkContainer: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
   },
   loginLink: {
     fontSize: 14,

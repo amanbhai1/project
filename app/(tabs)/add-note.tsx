@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -15,28 +15,50 @@ export default function AddNoteScreen() {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarType, setSnackbarType] = useState<'info' | 'success' | 'error'>('info');
+  const [initialized, setInitialized] = useState(false);
   
   const { id } = useLocalSearchParams<{ id: string }>();
   const { notes, createNote, updateNote } = useNotes();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { colors } = useTheme();
   
   const isEditing = !!id;
   const existingNote = notes.find(note => note.id === id);
+  const mountedRef = useRef(true);
 
-  // Handle user authentication redirect
+  // Handle initial authentication check
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!authLoading && !user && mountedRef.current) {
+        // Use timeout to avoid calling navigation during render
+        const timeoutId = setTimeout(() => {
+          if (mountedRef.current) {
+            router.replace('/auth/login');
+          }
+        }, 0);
+        return () => clearTimeout(timeoutId);
+      }
+    }, [user, authLoading])
+  );
+
   useEffect(() => {
-    if (!user) {
-      router.replace('/auth/login');
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user && !initialized) {
+      setInitialized(true);
     }
-  }, [user]);
+  }, [user, initialized]);
 
   useEffect(() => {
-    if (isEditing && existingNote) {
+    if (isEditing && existingNote && initialized) {
       setTitle(existingNote.title);
       setContent(existingNote.content);
     }
-  }, [isEditing, existingNote]);
+  }, [isEditing, existingNote, initialized]);
 
   const showMessage = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setSnackbarMessage(message);
@@ -61,7 +83,9 @@ export default function AddNoteScreen() {
       }
       
       setTimeout(() => {
-        router.back();
+        if (mountedRef.current) {
+          router.back();
+        }
       }, 1000);
     } catch (error) {
       showMessage(
@@ -73,8 +97,25 @@ export default function AddNoteScreen() {
     }
   };
 
+  const handleCancel = () => {
+    if (mountedRef.current) {
+      router.back();
+    }
+  };
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.loadingContainer}>
+          {/* Could add a loading spinner here */}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Don't render if user is not authenticated
-  if (!user) {
+  if (!user || !initialized) {
     return null;
   }
 
@@ -107,7 +148,7 @@ export default function AddNoteScreen() {
             <View style={styles.buttonContainer}>
               <Button
                 title="Cancel"
-                onPress={() => router.back()}
+                onPress={handleCancel}
                 variant="outlined"
                 style={styles.cancelButton}
               />
@@ -147,6 +188,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   titleInput: {
     marginBottom: 16,
   },
@@ -157,7 +203,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: -8, // Negative margin to create spacing
+    marginHorizontal: -8,
   },
   cancelButton: {
     flex: 1,

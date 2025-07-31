@@ -178,7 +178,11 @@ export default function AddNoteScreen() {
             style: 'destructive',
             onPress: () => {
               if (mountedRef.current) {
-                router.back();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace('/(tabs)/');
+                }
               }
             },
           },

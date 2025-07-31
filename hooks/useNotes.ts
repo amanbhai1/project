@@ -35,9 +35,13 @@ export function useNotes() {
           setLoading(false);
           setError(null);
         });
-      } catch (err) {
+      } catch (err: any) {
         console.error('Notes subscription error:', err);
-        setError('Failed to load notes. Please check your connection.');
+        if (err.message === 'FIRESTORE_INDEX_REQUIRED') {
+          setError('Database index missing. Please deploy Firestore indexes using: firebase deploy --only firestore:indexes');
+        } else {
+          setError('Failed to load notes. Please check your connection.');
+        }
         setLoading(false);
       }
     }

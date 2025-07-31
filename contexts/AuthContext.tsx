@@ -1,19 +1,8 @@
-import { ensureFirebaseInitialized } from '@/config/firebaseInit';
-
-// Add at the top of your file
-ensureFirebaseInitialized();
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import auth from '@react-native-firebase/auth';
-import '@/config/firebaseConfig';
-
-// Add initialization check right after imports
-if (!auth().app) {
-  throw new Error('Firebase not initialized - check firebaseConfig.ts');
-}
+import { authService, AuthUser } from '@/services/authService';
 
 interface AuthContextType {
-  user: import('@react-native-firebase/auth').FirebaseAuthTypes.User | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -23,12 +12,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<import('@react-native-firebase/auth').FirebaseAuthTypes.User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
-    const unsubscribe = auth().onAuthStateChanged((user) => {
+    const unsubscribe = authService.onAuthStateChanged((user) => {
       if (mounted) {
         setUser(user);
         setLoading(false);
@@ -43,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      await authService.signIn(email, password);
     } catch (error) {
       throw error;
     }
@@ -51,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      await authService.signUp(email, password);
     } catch (error) {
       throw error;
     }
@@ -59,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await auth().signOut();
+      await authService.signOut();
     } catch (error) {
       throw error;
     }

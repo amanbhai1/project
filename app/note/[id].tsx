@@ -81,7 +81,13 @@ export default function NoteDetailScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)/');
+            }
+          }}
           style={styles.backButton}
         >
           <ArrowLeft size={24} color={colors.onSurface} />

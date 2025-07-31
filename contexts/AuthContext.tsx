@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { authService, AuthUser } from '@/services/authService';
+import { authService } from '@/services/authService';
+import { Platform } from 'react-native';
+
+// Define a universal user type
+interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+  emailVerified?: boolean;
+}
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -17,16 +26,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    const unsubscribe = authService.onAuthStateChanged((user) => {
+    
+    const unsubscribe = authService.onAuthStateChanged((firebaseUser: any) => {
       if (mounted) {
-        setUser(user);
+        if (firebaseUser) {
+          // Convert Firebase user to our universal user format
+          const authUser: AuthUser = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            emailVerified: Platform.OS === 'web' ? firebaseUser.emailVerified : firebaseUser.emailVerified,
+          };
+          setUser(authUser);
+        } else {
+          setUser(null);
+        }
         setLoading(false);
       }
     });
 
     return () => {
       mounted = false;
-      unsubscribe();
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
   }, []);
 

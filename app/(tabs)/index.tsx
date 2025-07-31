@@ -10,7 +10,7 @@ import {
   Pressable
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Search as SearchIcon, Filter, Grid, List } from 'lucide-react-native';
+import { Plus, Search as SearchIcon, Filter, Grid, List, Star, AlertCircle } from 'lucide-react-native';
 import { NoteCard } from '@/components/NoteCard';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -36,6 +36,7 @@ export default function NotesScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const searchAnim = useRef(new Animated.Value(0)).current;
+  const demoBannerAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     // Entrance animations
@@ -52,6 +53,18 @@ export default function NotesScreen() {
       }),
     ]).start();
   }, []);
+
+  React.useEffect(() => {
+    // Demo banner animation
+    if (user?.isDemo) {
+      Animated.timing(demoBannerAnim, {
+        toValue: 1,
+        duration: 500,
+        delay: 1000, // Show after main content loads
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [user?.isDemo]);
 
   React.useEffect(() => {
     // Search bar animation
@@ -160,6 +173,56 @@ export default function NotesScreen() {
     </Animated.View>
   );
 
+  const renderDemoBanner = () => {
+    if (!user?.isDemo) return null;
+
+    return (
+      <Animated.View
+        style={[
+          styles.demoBanner,
+          {
+            backgroundColor: colors.primary + '15',
+            borderColor: colors.primary + '40',
+            opacity: demoBannerAnim,
+            transform: [
+              {
+                translateY: demoBannerAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-50, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[colors.primary + '20', colors.primary + '10']}
+          style={styles.demoBannerGradient}
+        >
+          <View style={styles.demoBannerContent}>
+            <View style={styles.demoBannerLeft}>
+              <Star size={20} color={colors.primary} />
+              <View>
+                <Text style={[styles.demoBannerTitle, { color: colors.primary }]}>
+                  Demo Mode Active
+                </Text>
+                <Text style={[styles.demoBannerText, { color: colors.onSurfaceVariant }]}>
+                  Explore all features! Notes won't be permanently saved.
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={() => showMessage('Demo mode is perfect for testing! 🎉', 'info')}
+              style={[styles.demoBannerButton, { backgroundColor: colors.primary }]}
+            >
+              <AlertCircle size={16} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+    );
+  };
+
   const renderHeader = () => (
     <Animated.View 
       style={[
@@ -178,10 +241,11 @@ export default function NotesScreen() {
           <View style={styles.headerTop}>
             <View>
               <Text style={[styles.greeting, { color: colors.onSurfaceVariant }]}>
-                Hello {user?.email?.split('@')[0] || 'there'}! 👋
+                Hello {user?.displayName || user?.email?.split('@')[0] || 'there'}! 
+                {user?.isDemo ? ' 🎮' : ' 👋'}
               </Text>
               <Text style={[styles.title, { color: colors.onSurface }]}>
-                My Notes
+                My Notes {user?.isDemo ? '(Demo)' : ''}
               </Text>
             </View>
             
@@ -231,6 +295,7 @@ export default function NotesScreen() {
             <View style={styles.stats}>
               <Text style={[styles.statsText, { color: colors.onSurfaceVariant }]}>
                 {filteredNotes.length} of {notes.length} notes
+                {user?.isDemo ? ' (Demo data)' : ''}
               </Text>
             </View>
           )}
@@ -254,6 +319,9 @@ export default function NotesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Demo Banner */}
+      {renderDemoBanner()}
+      
       <FlatList
         ListHeaderComponent={renderHeader}
         data={filteredNotes}
@@ -317,6 +385,43 @@ export default function NotesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  demoBanner: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  demoBannerGradient: {
+    padding: 12,
+  },
+  demoBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  demoBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  demoBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  demoBannerText: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  demoBannerButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     marginBottom: 20,

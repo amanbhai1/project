@@ -12,13 +12,23 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Play, AlertCircle } from 'lucide-react-native';
+import { 
+  Eye, 
+  EyeOff, 
+  Mail, 
+  Lock, 
+  ArrowRight, 
+  Play, 
+  Wifi, 
+  WifiOff,
+  AlertTriangle,
+  Zap
+} from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { authService } from '@/services/firebaseService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -30,14 +40,16 @@ export default function LoginScreen() {
   const [showError, setShowError] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [networkError, setNetworkError] = useState(false);
   
-  const { signIn } = useAuth();
+  const { signIn, signInOfflineDemo } = useAuth();
   const { colors } = useTheme();
   
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const networkErrorAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     // Entrance animations
@@ -60,6 +72,15 @@ export default function LoginScreen() {
       }),
     ]).start();
   }, []);
+
+  React.useEffect(() => {
+    // Network error banner animation
+    Animated.timing(networkErrorAnim, {
+      toValue: networkError ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [networkError]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,14 +109,15 @@ export default function LoginScreen() {
     return true;
   };
 
-  const handleDemoMode = async () => {
+  const handleOfflineDemo = async () => {
     setDemoLoading(true);
     
     try {
-      await authService.signInDemo();
+      await signInOfflineDemo();
+      
       Alert.alert(
-        'Welcome to Demo Mode! 🎉',
-        'You\'re now using a demo account. Explore all features - create, edit, and organize notes. Perfect for testing the app!',
+        '🎮 Demo Mode Active!',
+        'Welcome to the offline demo! You can explore all features:\n\n✨ Create and edit notes\n🔍 Search and organize\n🎨 Switch themes\n📱 Responsive design\n\nAll features work perfectly offline!',
         [
           {
             text: 'Start Exploring',
@@ -104,7 +126,7 @@ export default function LoginScreen() {
         ]
       );
     } catch (error: any) {
-      setError(error.message || 'Demo mode failed. Please contact support.');
+      setError(error.message || 'Demo mode failed to start');
       setShowError(true);
     } finally {
       setDemoLoading(false);
@@ -120,6 +142,7 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    setNetworkError(false);
     
     // Add loading animation
     Animated.timing(scaleAnim, {
@@ -168,33 +191,22 @@ export default function LoginScreen() {
         }),
       ]).start();
       
-      // Check if this is an authentication availability issue
-      if (err.message && (err.message.includes('not enabled') || err.message.includes('not available'))) {
-        Alert.alert(
-          'Authentication Issue',
-          'Email/password authentication is currently not available. Would you like to try our demo mode instead?',
-          [
-            {
-              text: 'Contact Support',
-              style: 'cancel',
-              onPress: () => {
-                Alert.alert(
-                  'Contact Support',
-                  'Please email support@notes-app.com for assistance with account access.',
-                  [{ text: 'OK' }]
-                );
-              },
-            },
-            {
-              text: 'Try Demo Mode',
-              onPress: handleDemoMode,
-            },
-          ]
-        );
+      // Check if this is a network-related error
+      const isNetworkError = err.message && (
+        err.message.includes('network') || 
+        err.message.includes('connection') ||
+        err.message.includes('offline') ||
+        err.message.includes('timeout')
+      );
+      
+      if (isNetworkError) {
+        setNetworkError(true);
+        setError('Connection failed. Try Demo Mode for offline access!');
       } else {
         setError(err.message || 'Login failed');
-        setShowError(true);
       }
+      
+      setShowError(true);
     } finally {
       setLoading(false);
       Animated.timing(scaleAnim, {
@@ -210,7 +222,7 @@ export default function LoginScreen() {
     setPassword('demo123');
     Alert.alert(
       'Demo Credentials',
-      'Demo credentials filled! Note: If email authentication is not available, use the "Try Demo Mode" button below instead.',
+      'Demo credentials filled! If you experience connection issues, use the "Offline Demo" button for instant access.',
       [{ text: 'OK', style: 'default' }]
     );
   };
@@ -248,17 +260,67 @@ export default function LoginScreen() {
               </Text>
             </View>
 
-            {/* Auth Issue Notice */}
-            <View style={[styles.noticeContainer, { backgroundColor: colors.surface }]}>
-              <View style={styles.noticeHeader}>
-                <AlertCircle size={16} color={colors.primary} />
-                <Text style={[styles.noticeTitle, { color: colors.primary }]}>
-                  Authentication Notice
-                </Text>
-              </View>
-              <Text style={[styles.noticeText, { color: colors.onSurfaceVariant }]}>
-                If you encounter login issues, try our demo mode to explore all features instantly!
-              </Text>
+            {/* Network Error Banner */}
+            {networkError && (
+              <Animated.View
+                style={[
+                  styles.networkBanner,
+                  {
+                    backgroundColor: colors.error + '15',
+                    borderColor: colors.error + '40',
+                    opacity: networkErrorAnim,
+                    transform: [
+                      {
+                        translateY: networkErrorAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-50, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <WifiOff size={20} color={colors.error} />
+                <View style={styles.networkBannerText}>
+                  <Text style={[styles.networkBannerTitle, { color: colors.error }]}>
+                    Connection Issue
+                  </Text>
+                  <Text style={[styles.networkBannerSubtitle, { color: colors.onSurfaceVariant }]}>
+                    Try Offline Demo for instant access
+                  </Text>
+                </View>
+              </Animated.View>
+            )}
+
+            {/* Offline Demo Highlight */}
+            <View style={[styles.demoHighlight, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}>
+              <LinearGradient
+                colors={[colors.primary + '20', colors.primary + '10']}
+                style={styles.demoHighlightGradient}
+              >
+                <View style={styles.demoHighlightContent}>
+                  <Zap size={24} color={colors.primary} />
+                  <View style={styles.demoHighlightText}>
+                    <Text style={[styles.demoHighlightTitle, { color: colors.primary }]}>
+                      Instant Demo Access
+                    </Text>
+                    <Text style={[styles.demoHighlightSubtitle, { color: colors.onSurfaceVariant }]}>
+                      Try all features without internet connection
+                    </Text>
+                  </View>
+                </View>
+                
+                <Button
+                  title="Start Demo"
+                  onPress={handleOfflineDemo}
+                  loading={demoLoading}
+                  disabled={demoLoading}
+                  size="small"
+                  variant="filled"
+                  leftIcon={<Play size={16} color="#FFFFFF" />}
+                  style={styles.demoHighlightButton}
+                />
+              </LinearGradient>
             </View>
 
             {/* Form */}
@@ -316,31 +378,15 @@ export default function LoginScreen() {
                 rightIcon={<ArrowRight size={20} color="#FFFFFF" />}
               />
 
-              <View style={styles.buttonGroup}>
-                <Pressable 
-                  onPress={handleDemoLogin}
-                  style={[styles.demoCredentialsButton, { backgroundColor: colors.surface }]}
-                >
-                  <Text style={[styles.demoCredentialsText, { color: colors.onSurface }]}>
-                    Fill Demo Credentials
-                  </Text>
-                </Pressable>
-
-                <Pressable 
-                  onPress={handleDemoMode}
-                  style={[styles.demoModeButton, { backgroundColor: colors.primary }]}
-                  disabled={demoLoading}
-                >
-                  {demoLoading ? (
-                    <Text style={styles.demoModeText}>Loading...</Text>
-                  ) : (
-                    <>
-                      <Play size={16} color="#FFFFFF" />
-                      <Text style={styles.demoModeText}>Try Demo Mode</Text>
-                    </>
-                  )}
-                </Pressable>
-              </View>
+              <Pressable 
+                onPress={handleDemoLogin}
+                style={[styles.demoCredentialsButton, { backgroundColor: colors.surface }]}
+              >
+                <Wifi size={16} color={colors.onSurface} />
+                <Text style={[styles.demoCredentialsText, { color: colors.onSurface }]}>
+                  Fill Demo Credentials
+                </Text>
+              </Pressable>
             </View>
 
             {/* Footer */}
@@ -391,7 +437,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logoContainer: {
     width: 80,
@@ -415,26 +461,55 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  noticeContainer: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#6750A4',
-  },
-  noticeHeader: {
+  networkBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+    gap: 12,
   },
-  noticeTitle: {
+  networkBannerText: {
+    flex: 1,
+  },
+  networkBannerTitle: {
     fontSize: 14,
     fontWeight: '600',
+    marginBottom: 2,
   },
-  noticeText: {
+  networkBannerSubtitle: {
+    fontSize: 12,
+  },
+  demoHighlight: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  demoHighlightGradient: {
+    padding: 16,
+  },
+  demoHighlightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  demoHighlightText: {
+    flex: 1,
+  },
+  demoHighlightTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  demoHighlightSubtitle: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  demoHighlightButton: {
+    alignSelf: 'center',
   },
   form: {
     marginBottom: 32,
@@ -454,30 +529,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     height: 56,
   },
-  buttonGroup: {
-    gap: 12,
-  },
   demoCredentialsButton: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(103, 80, 164, 0.3)',
-  },
-  demoCredentialsText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  demoModeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(103, 80, 164, 0.3)',
     gap: 8,
   },
-  demoModeText: {
-    color: '#FFFFFF',
+  demoCredentialsText: {
     fontSize: 16,
     fontWeight: '600',
   },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput as RNTextInput, View, Text, StyleSheet, TextInputProps } from 'react-native';
+import { TextInput as RNTextInput, View, Text, StyleSheet, TextInputProps, Platform } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface CustomTextInputProps extends TextInputProps {
@@ -24,6 +24,24 @@ export function TextInput({
     return colors.outline;
   };
 
+  const getInputStyle = () => {
+    const baseStyle = {
+      backgroundColor: colors.surface,
+      borderColor: getBorderColor(),
+      color: colors.onSurface,
+    };
+
+    // Only add textAlignVertical on native platforms
+    if (Platform.OS !== 'web') {
+      return {
+        ...baseStyle,
+        textAlignVertical: 'top' as const,
+      };
+    }
+
+    return baseStyle;
+  };
+
   return (
     <View style={[styles.container, style]}>
       {label && (
@@ -34,11 +52,7 @@ export function TextInput({
       <RNTextInput
         style={[
           styles.input,
-          {
-            backgroundColor: colors.surface,
-            borderColor: getBorderColor(),
-            color: colors.onSurface,
-          },
+          getInputStyle(),
         ]}
         placeholderTextColor={colors.onSurfaceVariant}
         onFocus={() => setIsFocused(true)}
@@ -77,7 +91,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     minHeight: 48,
-    textAlignVertical: 'top',
   },
   helperText: {
     fontSize: 12,

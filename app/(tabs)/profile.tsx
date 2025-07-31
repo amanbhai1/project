@@ -66,6 +66,7 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
+    console.log('Sign out button pressed');
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -78,15 +79,21 @@ export default function ProfileScreen() {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
+            console.log('Confirming sign out...');
             try {
+              console.log('Calling signOut function...');
               await signOut();
+              console.log('SignOut successful');
               showMessage('Signed out successfully', 'success');
             } catch (error) {
               console.error('Sign out error:', error);
               showMessage('Signed out locally', 'info');
             } finally {
+              console.log('Navigating to login...');
               // Always navigate to login regardless of signOut success/failure
-              router.replace('/auth/login');
+              setTimeout(() => {
+                router.replace('/auth/login');
+              }, 500);
             }
           },
         },

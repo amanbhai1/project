@@ -13,13 +13,21 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, AlertTriangle, Play } from 'lucide-react-native';
+import { 
+  Eye, 
+  EyeOff, 
+  Mail, 
+  Lock, 
+  ArrowRight, 
+  Play, 
+  Zap,
+  WifiOff
+} from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { authService } from '@/services/firebaseService';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -34,16 +42,16 @@ export default function RegisterScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [showDemoOption, setShowDemoOption] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
   
-  const { signUp } = useAuth();
+  const { signUp, signInOfflineDemo } = useAuth();
   const { colors } = useTheme();
   
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const demoAnim = useRef(new Animated.Value(0)).current;
+  const networkErrorAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     // Entrance animations
@@ -68,14 +76,13 @@ export default function RegisterScreen() {
   }, []);
 
   React.useEffect(() => {
-    // Demo option animation
-    Animated.spring(demoAnim, {
-      toValue: showDemoOption ? 1 : 0,
-      tension: 300,
-      friction: 10,
+    // Network error banner animation
+    Animated.timing(networkErrorAnim, {
+      toValue: networkError ? 1 : 0,
+      duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [showDemoOption]);
+  }, [networkError]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -125,14 +132,15 @@ export default function RegisterScreen() {
     return isEmailValid && isPasswordValid && isConfirmPasswordValid;
   };
 
-  const handleDemoMode = async () => {
+  const handleOfflineDemo = async () => {
     setDemoLoading(true);
     
     try {
-      await authService.signInDemo();
+      await signInOfflineDemo();
+      
       Alert.alert(
-        'Demo Mode Active! 🎉',
-        'You\'re now using a demo account. You can create and manage notes, but they won\'t be permanently saved. This is perfect for testing the app!',
+        '🎮 Demo Mode Active!',
+        'Welcome to the offline demo! Perfect for:\n\n✨ Testing all features\n📝 Creating sample notes\n🎨 Exploring the interface\n📱 Trying different views\n\nEverything works offline!',
         [
           {
             text: 'Start Exploring',
@@ -141,36 +149,11 @@ export default function RegisterScreen() {
         ]
       );
     } catch (error: any) {
-      setError(error.message || 'Demo mode failed. Please contact support.');
+      setError(error.message || 'Demo mode failed to start');
       setShowError(true);
     } finally {
       setDemoLoading(false);
     }
-  };
-
-  const showDemoModeOption = () => {
-    setShowDemoOption(true);
-    Alert.alert(
-      'Registration Issue',
-      'Email registration is currently not available. Would you like to try our demo mode instead? You can explore all features without creating an account.',
-      [
-        {
-          text: 'Contact Support',
-          style: 'cancel',
-          onPress: () => {
-            Alert.alert(
-              'Contact Support',
-              'Please email support@notes-app.com for assistance with account registration.',
-              [{ text: 'OK' }]
-            );
-          },
-        },
-        {
-          text: 'Try Demo Mode',
-          onPress: handleDemoMode,
-        },
-      ]
-    );
   };
 
   const handleRegister = async () => {
@@ -179,6 +162,7 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
+    setNetworkError(false);
     
     // Add loading animation
     Animated.timing(scaleAnim, {
@@ -227,13 +211,22 @@ export default function RegisterScreen() {
         }),
       ]).start();
       
-      // Check if this is an email/password not allowed error
-      if (err.message && err.message.includes('not available')) {
-        showDemoModeOption();
+      // Check if this is a network-related error
+      const isNetworkError = err.message && (
+        err.message.includes('network') || 
+        err.message.includes('connection') ||
+        err.message.includes('not available') ||
+        err.message.includes('timeout')
+      );
+      
+      if (isNetworkError) {
+        setNetworkError(true);
+        setError('Registration unavailable. Try Demo Mode for instant access!');
       } else {
         setError(err.message || 'Registration failed');
-        setShowError(true);
       }
+      
+      setShowError(true);
     } finally {
       setLoading(false);
       Animated.timing(scaleAnim, {
@@ -278,47 +271,68 @@ export default function RegisterScreen() {
                 </Text>
               </View>
 
-              {/* Demo Mode Banner */}
-              {showDemoOption && (
+              {/* Network Error Banner */}
+              {networkError && (
                 <Animated.View
                   style={[
-                    styles.demoBanner,
-                    { 
-                      backgroundColor: colors.primary + '15',
-                      borderColor: colors.primary + '40',
-                      opacity: demoAnim,
+                    styles.networkBanner,
+                    {
+                      backgroundColor: colors.error + '15',
+                      borderColor: colors.error + '40',
+                      opacity: networkErrorAnim,
                       transform: [
                         {
-                          scale: demoAnim.interpolate({
+                          translateY: networkErrorAnim.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [0.9, 1],
+                            outputRange: [-50, 0],
                           }),
                         },
                       ],
                     },
                   ]}
                 >
-                  <View style={styles.demoHeader}>
-                    <AlertTriangle size={20} color={colors.primary} />
-                    <Text style={[styles.demoTitle, { color: colors.primary }]}>
+                  <WifiOff size={20} color={colors.error} />
+                  <View style={styles.networkBannerText}>
+                    <Text style={[styles.networkBannerTitle, { color: colors.error }]}>
                       Registration Unavailable
                     </Text>
+                    <Text style={[styles.networkBannerSubtitle, { color: colors.onSurfaceVariant }]}>
+                      Use Demo Mode for instant access
+                    </Text>
                   </View>
-                  <Text style={[styles.demoText, { color: colors.onSurfaceVariant }]}>
-                    Email registration is temporarily disabled. Try our demo mode to explore all features!
-                  </Text>
+                </Animated.View>
+              )}
+
+              {/* Offline Demo Highlight */}
+              <View style={[styles.demoHighlight, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}>
+                <LinearGradient
+                  colors={[colors.primary + '20', colors.primary + '10']}
+                  style={styles.demoHighlightGradient}
+                >
+                  <View style={styles.demoHighlightContent}>
+                    <Zap size={24} color={colors.primary} />
+                    <View style={styles.demoHighlightText}>
+                      <Text style={[styles.demoHighlightTitle, { color: colors.primary }]}>
+                        Skip Registration
+                      </Text>
+                      <Text style={[styles.demoHighlightSubtitle, { color: colors.onSurfaceVariant }]}>
+                        Try all features instantly with demo mode
+                      </Text>
+                    </View>
+                  </View>
+                  
                   <Button
                     title="Start Demo"
-                    onPress={handleDemoMode}
+                    onPress={handleOfflineDemo}
                     loading={demoLoading}
                     disabled={demoLoading}
                     size="small"
                     variant="filled"
                     leftIcon={<Play size={16} color="#FFFFFF" />}
-                    style={styles.demoButton}
+                    style={styles.demoHighlightButton}
                   />
-                </Animated.View>
-              )}
+                </LinearGradient>
+              </View>
 
               {/* Form */}
               <View style={styles.form}>
@@ -405,17 +419,6 @@ export default function RegisterScreen() {
                   style={styles.registerButton}
                   rightIcon={<ArrowRight size={20} color="#FFFFFF" />}
                 />
-
-                {/* Alternative Option */}
-                <Pressable 
-                  onPress={showDemoModeOption}
-                  style={[styles.alternativeButton, { backgroundColor: colors.surface }]}
-                >
-                  <Play size={20} color={colors.primary} />
-                  <Text style={[styles.alternativeText, { color: colors.primary }]}>
-                    Try Demo Mode Instead
-                  </Text>
-                </Pressable>
               </View>
 
               {/* Footer */}
@@ -472,7 +475,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logoContainer: {
     width: 80,
@@ -496,29 +499,55 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  demoBanner: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  demoHeader: {
+  networkBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 16,
+    gap: 12,
   },
-  demoTitle: {
-    fontSize: 16,
+  networkBannerText: {
+    flex: 1,
+  },
+  networkBannerTitle: {
+    fontSize: 14,
     fontWeight: '600',
+    marginBottom: 2,
   },
-  demoText: {
+  networkBannerSubtitle: {
+    fontSize: 12,
+  },
+  demoHighlight: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  demoHighlightGradient: {
+    padding: 16,
+  },
+  demoHighlightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  demoHighlightText: {
+    flex: 1,
+  },
+  demoHighlightTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  demoHighlightSubtitle: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 12,
   },
-  demoButton: {
-    alignSelf: 'flex-start',
+  demoHighlightButton: {
+    alignSelf: 'center',
   },
   form: {
     marginBottom: 32,
@@ -536,22 +565,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
     height: 56,
-    marginBottom: 16,
-  },
-  alternativeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(103, 80, 164, 0.3)',
-  },
-  alternativeText: {
-    fontSize: 16,
-    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',

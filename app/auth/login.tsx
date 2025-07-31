@@ -12,18 +12,20 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Play, AlertCircle } from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { authService } from '@/services/firebaseService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState('');
   const [showError, setShowError] = useState(false);
   const [emailError, setEmailError] = useState('');
@@ -86,6 +88,29 @@ export default function LoginScreen() {
     return true;
   };
 
+  const handleDemoMode = async () => {
+    setDemoLoading(true);
+    
+    try {
+      await authService.signInDemo();
+      Alert.alert(
+        'Welcome to Demo Mode! 🎉',
+        'You\'re now using a demo account. Explore all features - create, edit, and organize notes. Perfect for testing the app!',
+        [
+          {
+            text: 'Start Exploring',
+            onPress: () => router.replace('/(tabs)'),
+          },
+        ]
+      );
+    } catch (error: any) {
+      setError(error.message || 'Demo mode failed. Please contact support.');
+      setShowError(true);
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
@@ -122,6 +147,8 @@ export default function LoginScreen() {
       
       router.replace('/(tabs)');
     } catch (err: any) {
+      console.error('Login error:', err);
+      
       // Error animation
       Animated.sequence([
         Animated.timing(slideAnim, {
@@ -141,8 +168,33 @@ export default function LoginScreen() {
         }),
       ]).start();
       
-      setError(err.message || 'Login failed');
-      setShowError(true);
+      // Check if this is an authentication availability issue
+      if (err.message && (err.message.includes('not enabled') || err.message.includes('not available'))) {
+        Alert.alert(
+          'Authentication Issue',
+          'Email/password authentication is currently not available. Would you like to try our demo mode instead?',
+          [
+            {
+              text: 'Contact Support',
+              style: 'cancel',
+              onPress: () => {
+                Alert.alert(
+                  'Contact Support',
+                  'Please email support@notes-app.com for assistance with account access.',
+                  [{ text: 'OK' }]
+                );
+              },
+            },
+            {
+              text: 'Try Demo Mode',
+              onPress: handleDemoMode,
+            },
+          ]
+        );
+      } else {
+        setError(err.message || 'Login failed');
+        setShowError(true);
+      }
     } finally {
       setLoading(false);
       Animated.timing(scaleAnim, {
@@ -157,8 +209,8 @@ export default function LoginScreen() {
     setEmail('demo@example.com');
     setPassword('demo123');
     Alert.alert(
-      'Demo Account',
-      'Demo credentials filled! You can now sign in or use your own account.',
+      'Demo Credentials',
+      'Demo credentials filled! Note: If email authentication is not available, use the "Try Demo Mode" button below instead.',
       [{ text: 'OK', style: 'default' }]
     );
   };
@@ -193,6 +245,19 @@ export default function LoginScreen() {
               <Text style={[styles.title, { color: colors.onSurface }]}>Welcome Back</Text>
               <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
                 Sign in to continue to your notes
+              </Text>
+            </View>
+
+            {/* Auth Issue Notice */}
+            <View style={[styles.noticeContainer, { backgroundColor: colors.surface }]}>
+              <View style={styles.noticeHeader}>
+                <AlertCircle size={16} color={colors.primary} />
+                <Text style={[styles.noticeTitle, { color: colors.primary }]}>
+                  Authentication Notice
+                </Text>
+              </View>
+              <Text style={[styles.noticeText, { color: colors.onSurfaceVariant }]}>
+                If you encounter login issues, try our demo mode to explore all features instantly!
               </Text>
             </View>
 
@@ -251,14 +316,31 @@ export default function LoginScreen() {
                 rightIcon={<ArrowRight size={20} color="#FFFFFF" />}
               />
 
-              <Pressable 
-                onPress={handleDemoLogin}
-                style={[styles.demoButton, { backgroundColor: colors.surface }]}
-              >
-                <Text style={[styles.demoText, { color: colors.primary }]}>
-                  Try Demo Account
-                </Text>
-              </Pressable>
+              <View style={styles.buttonGroup}>
+                <Pressable 
+                  onPress={handleDemoLogin}
+                  style={[styles.demoCredentialsButton, { backgroundColor: colors.surface }]}
+                >
+                  <Text style={[styles.demoCredentialsText, { color: colors.onSurface }]}>
+                    Fill Demo Credentials
+                  </Text>
+                </Pressable>
+
+                <Pressable 
+                  onPress={handleDemoMode}
+                  style={[styles.demoModeButton, { backgroundColor: colors.primary }]}
+                  disabled={demoLoading}
+                >
+                  {demoLoading ? (
+                    <Text style={styles.demoModeText}>Loading...</Text>
+                  ) : (
+                    <>
+                      <Play size={16} color="#FFFFFF" />
+                      <Text style={styles.demoModeText}>Try Demo Mode</Text>
+                    </>
+                  )}
+                </Pressable>
+              </View>
             </View>
 
             {/* Footer */}
@@ -309,7 +391,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   logoContainer: {
     width: 80,
@@ -333,6 +415,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+  noticeContainer: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6750A4',
+  },
+  noticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  noticeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  noticeText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
   form: {
     marginBottom: 32,
   },
@@ -351,14 +454,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     height: 56,
   },
-  demoButton: {
+  buttonGroup: {
+    gap: 12,
+  },
+  demoCredentialsButton: {
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(103, 80, 164, 0.3)',
   },
-  demoText: {
+  demoCredentialsText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  demoModeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  demoModeText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

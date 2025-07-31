@@ -1,33 +1,106 @@
-import React, { useState } from 'react';
-import { TextInput as RNTextInput, View, Text, StyleSheet, TextInputProps, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  TextInput as RNTextInput, 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInputProps, 
+  Platform,
+  Animated,
+  Pressable
+} from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface CustomTextInputProps extends TextInputProps {
   label?: string;
   error?: string;
   helperText?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export function TextInput({
   label,
   error,
   helperText,
+  leftIcon,
+  rightIcon,
   style,
+  onFocus,
+  onBlur,
   ...props
 }: CustomTextInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const { colors } = useTheme();
+  
+  // Animation values
+  const borderColorAnim = useRef(new Animated.Value(0)).current;
+  const labelScaleAnim = useRef(new Animated.Value(0)).current;
+  const labelTranslateYAnim = useRef(new Animated.Value(0)).current;
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animate border color
+    Animated.timing(borderColorAnim, {
+      toValue: isFocused ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+
+    // Animate label
+    Animated.parallel([
+      Animated.timing(labelScaleAnim, {
+        toValue: isFocused || props.value ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(labelTranslateYAnim, {
+        toValue: isFocused || props.value ? 1 : 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isFocused, props.value]);
+
+  useEffect(() => {
+    // Shake animation on error
+    if (error) {
+      Animated.sequence([
+        Animated.timing(shakeAnim, {
+          toValue: -5,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: 5,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: -5,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: 0,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [error]);
 
   const getBorderColor = () => {
     if (error) return colors.error;
-    if (isFocused) return colors.primary;
-    return colors.outline;
+    return borderColorAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [colors.outline, colors.primary],
+    });
   };
 
   const getInputStyle = () => {
     const baseStyle = {
       backgroundColor: colors.surface,
-      borderColor: getBorderColor(),
       color: colors.onSurface,
     };
 
@@ -42,32 +115,95 @@ export function TextInput({
     return baseStyle;
   };
 
+  const handleFocus = (e: any) => {
+    setIsFocused(true);
+    onFocus?.(e);
+  };
+
+  const handleBlur = (e: any) => {
+    setIsFocused(false);
+    onBlur?.(e);
+  };
+
   return (
     <View style={[styles.container, style]}>
-      {label && (
-        <Text style={[styles.label, { color: colors.onSurfaceVariant }]}>
-          {label}
-        </Text>
-      )}
-      <RNTextInput
+      <Animated.View 
         style={[
-          styles.input,
-          getInputStyle(),
+          styles.inputContainer,
+          {
+            borderColor: getBorderColor(),
+            transform: [{ translateX: shakeAnim }],
+          },
         ]}
-        placeholderTextColor={colors.onSurfaceVariant}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        {...props}
-      />
+      >
+        {leftIcon && (
+          <View style={styles.leftIconContainer}>
+            {leftIcon}
+          </View>
+        )}
+        
+        <View style={styles.inputWrapper}>
+          {label && (
+            <Animated.Text
+              style={[
+                styles.label,
+                { 
+                  color: error ? colors.error : isFocused ? colors.primary : colors.onSurfaceVariant,
+                  transform: [
+                    {
+                      scale: labelScaleAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1, 0.85],
+                      }),
+                    },
+                    {
+                      translateY: labelTranslateYAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -28],
+                      }),
+                    },
+                  ],
+                }
+              ]}
+            >
+              {label}
+            </Animated.Text>
+          )}
+          
+          <RNTextInput
+            style={[
+              styles.input,
+              getInputStyle(),
+              {
+                paddingTop: label && (isFocused || props.value) ? 20 : 16,
+              },
+            ]}
+            placeholderTextColor={colors.onSurfaceVariant}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            {...props}
+          />
+        </View>
+
+        {rightIcon && (
+          <View style={styles.rightIconContainer}>
+            {rightIcon}
+          </View>
+        )}
+      </Animated.View>
+
       {(error || helperText) && (
-        <Text
+        <Animated.Text
           style={[
             styles.helperText,
-            { color: error ? colors.error : colors.onSurfaceVariant },
+            { 
+              color: error ? colors.error : colors.onSurfaceVariant,
+              opacity: error || helperText ? 1 : 0,
+            },
           ]}
         >
           {error || helperText}
-        </Text>
+        </Animated.Text>
       )}
     </View>
   );
@@ -77,24 +213,50 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
   },
+  inputContainer: {
+    borderWidth: 2,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 64,
+  },
+  leftIconContainer: {
+    paddingLeft: 16,
+    paddingRight: 8,
+    justifyContent: 'center',
+  },
+  rightIconContainer: {
+    paddingRight: 16,
+    paddingLeft: 8,
+    justifyContent: 'center',
+  },
+  inputWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
   label: {
-    fontSize: 12,
+    position: 'absolute',
+    left: 16,
+    top: 20,
+    fontSize: 16,
     fontWeight: '500',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    zIndex: 1,
+    backgroundColor: 'transparent',
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     fontSize: 16,
-    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 56,
+    margin: 0,
+    borderWidth: 0,
   },
   helperText: {
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 8,
     marginLeft: 16,
+    fontWeight: '500',
   },
 });

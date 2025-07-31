@@ -24,6 +24,13 @@ export default function AddNoteScreen() {
   const isEditing = !!id;
   const existingNote = notes.find(note => note.id === id);
 
+  // Handle user authentication redirect
+  useEffect(() => {
+    if (!user) {
+      router.replace('/auth/login');
+    }
+  }, [user]);
+
   useEffect(() => {
     if (isEditing && existingNote) {
       setTitle(existingNote.title);
@@ -66,8 +73,8 @@ export default function AddNoteScreen() {
     }
   };
 
+  // Don't render if user is not authenticated
   if (!user) {
-    router.replace('/auth/login');
     return null;
   }
 
@@ -150,12 +157,14 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
+    marginHorizontal: -8, // Negative margin to create spacing
   },
   cancelButton: {
     flex: 1,
+    marginHorizontal: 8,
   },
   saveButton: {
     flex: 1,
+    marginHorizontal: 8,
   },
 });

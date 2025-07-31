@@ -73,8 +73,7 @@ class NotesService {
   subscribeToNotes(userId: string, callback: (notes: Note[]) => void) {
     const queryRef = firestoreService.query(
       this.notesCollection,
-      firestoreService.where('userId', '==', userId),
-      firestoreService.orderBy('timestamp', 'desc')
+      firestoreService.where('userId', '==', userId)
     );
 
     return firestoreService.onSnapshot(
@@ -85,15 +84,13 @@ class NotesService {
           ...doc.data(),
           timestamp: doc.data().timestamp?.toDate() || new Date(),
         })) as Note[];
-        callback(notes);
+
+        // Sort in memory to avoid index requirement
+        const sortedNotes = notes.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        callback(sortedNotes);
       },
       (error: any) => {
         console.error('Error in notes subscription:', error);
-        // If it's an index error, throw a specific error that can be caught
-        if (error.code === 'failed-precondition' && error.message.includes('index')) {
-          throw new Error('FIRESTORE_INDEX_REQUIRED');
-        }
-        throw error;
       }
     );
   }

@@ -1,20 +1,30 @@
 import { Platform } from 'react-native';
 
-// Platform-specific Firebase exports
-let auth: any;
-let firestore: any;
+// Export Firebase auth and firestore based on platform
+export let auth: any;
+export let firestore: any;
 
 if (Platform.OS === 'web') {
-  const webFirebase = require('./firebase.web');
-  auth = webFirebase.auth;
-  firestore = webFirebase.firestore;
+  // Import web Firebase
+  try {
+    const webAuth = require('./firebase.web').auth;
+    const webFirestore = require('./firebase.web').firestore;
+    auth = webAuth;
+    firestore = webFirestore;
+  } catch (error) {
+    console.error('Failed to initialize web Firebase:', error);
+  }
 } else {
-  const nativeFirebase = require('./firebase.native');
-  auth = nativeFirebase.auth;
-  firestore = nativeFirebase.firestore;
+  // Import React Native Firebase
+  try {
+    const nativeAuth = require('@react-native-firebase/auth').default;
+    const nativeFirestore = require('@react-native-firebase/firestore').default;
+    auth = nativeAuth;
+    firestore = nativeFirestore;
+  } catch (error) {
+    console.error('Failed to initialize native Firebase:', error);
+  }
 }
-
-export { auth, firestore };
 
 // For backward compatibility
 export const firebaseConfig = {
@@ -23,7 +33,7 @@ export const firebaseConfig = {
   projectId: "the-code-sneakers",
   storageBucket: "the-code-sneakers.firebasestorage.app",
   messagingSenderId: "456081169519",
-  appId: "1:456081169519:web:4387d0689132d94a57819a",
+  appId: "1:456081169519:web:4387d0689132d94a57819a57819a",
 };
 
 export default firebaseConfig;

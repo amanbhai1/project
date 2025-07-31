@@ -103,45 +103,16 @@ export default function NotesScreen() {
     router.push('/(tabs)/add-note');
   };
 
-  const NoteItem = React.memo(({ item, index }: { item: Note; index: number }) => {
-    const animatedValue = useRef(new Animated.Value(0)).current;
-
-    React.useEffect(() => {
-      Animated.timing(animatedValue, {
-        toValue: 1,
-        duration: 300,
-        delay: index * 100,
-        useNativeDriver: true,
-      }).start();
-    }, []);
-
-    return (
-      <Animated.View
-        style={{
-          opacity: animatedValue,
-          transform: [
-            {
-              translateY: animatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [50, 0],
-              }),
-            },
-          ],
-        }}
-      >
-        <NoteCard
-          note={item}
-          onPress={() => router.push(`/note/${item.id}`)}
-          onEdit={() => router.push(`/(tabs)/add-note?id=${item.id}`)}
-          onDelete={() => handleDeleteNote(item.id)}
-          viewMode={viewMode}
-        />
-      </Animated.View>
-    );
-  });
-
   const renderNote = ({ item, index }: { item: Note; index: number }) => (
-    <NoteItem item={item} index={index} />
+    <View style={{ opacity: 1 }}>
+      <NoteCard
+        note={item}
+        onPress={() => router.push(`/note/${item.id}`)}
+        onEdit={() => router.push(`/(tabs)/add-note?id=${item.id}`)}
+        onDelete={() => handleDeleteNote(item.id)}
+        viewMode={viewMode}
+      />
+    </View>
   );
 
   const renderEmptyState = () => (

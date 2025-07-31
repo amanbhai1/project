@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService, AuthUser } from '@/services/firebaseService';
+import { Platform } from 'react-native';
+
+// Define a universal user type
+interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+  emailVerified?: boolean;
+  isAnonymous?: boolean;
+  isDemo?: boolean;
+}
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: AppUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -12,7 +23,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,21 +31,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const unsubscribe = authService.onAuthStateChanged((firebaseUser) => {
       if (mounted) {
-        setUser(firebaseUser);
+        if (firebaseUser) {
+          // Convert Firebase user to our universal user format
+          const appUser: AppUser = {
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || (firebaseUser.isAnonymous ? 'demo@notes-app.com' : null),
+            displayName: firebaseUser.displayName || (firebaseUser.isAnonymous ? 'Demo User' : null),
+            emailVerified: firebaseUser.emailVerified,
+            isAnonymous: firebaseUser.isAnonymous,
+            isDemo: firebaseUser.isAnonymous, // Anonymous users are demo users
+          };
+          setUser(appUser);
+        } else {
+          setUser(null);
+        }
         setLoading(false);
       }
     });
 
     return () => {
       mounted = false;
-      unsubscribe();
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       await authService.signIn(email, password);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Sign in error:', error);
       throw error;
     }
   };
@@ -42,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string) => {
     try {
       await authService.signUp(email, password);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Sign up error:', error);
       throw error;
     }
   };
@@ -50,7 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await authService.signOut();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Sign out error:', error);
       throw error;
     }
   };

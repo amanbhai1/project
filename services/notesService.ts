@@ -10,17 +10,19 @@ class NotesService {
     try {
       const queryRef = firestoreService.query(
         this.notesCollection,
-        firestoreService.where('userId', '==', userId),
-        firestoreService.orderBy('timestamp', 'desc')
+        firestoreService.where('userId', '==', userId)
       );
 
       const snapshot = await firestoreService.getDocs(queryRef);
-      
-      return snapshot.docs.map((doc: any) => ({
+
+      const notes = snapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data(),
         timestamp: doc.data().timestamp?.toDate() || new Date(),
       })) as Note[];
+
+      // Sort in memory to avoid index requirement
+      return notes.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     } catch (error) {
       console.error('Error fetching notes:', error);
       throw error;

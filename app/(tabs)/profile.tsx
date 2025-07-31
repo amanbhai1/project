@@ -1,28 +1,28 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   ScrollView,
   Animated,
   Pressable,
-  Alert
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  User as UserIcon, 
-  Mail, 
-  Calendar, 
-  FileText, 
-  Settings, 
+import {
+  User as UserIcon,
+  Mail,
+  Calendar,
+  FileText,
+  Settings,
   LogOut,
   Moon,
   Sun,
   Shield,
   HelpCircle,
-  Heart
+  Heart,
 } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -33,12 +33,14 @@ import { useNotes } from '@/hooks/useNotes';
 export default function ProfileScreen() {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarType, setSnackbarType] = useState<'info' | 'success' | 'error'>('info');
-  
+  const [snackbarType, setSnackbarType] = useState<
+    'info' | 'success' | 'error'
+  >('info');
+
   const { user, signOut } = useAuth();
   const { colors, theme, setTheme } = useTheme();
   const { notes } = useNotes();
-  
+
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -59,41 +61,40 @@ export default function ProfileScreen() {
     ]).start();
   }, []);
 
-  const showMessage = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showMessage = (
+    message: string,
+    type: 'info' | 'success' | 'error' = 'info',
+  ) => {
     setSnackbarMessage(message);
     setSnackbarType(type);
     setShowSnackbar(true);
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            // Show loading message
-            showMessage('Signing out...', 'info');
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          // Show loading message
+          showMessage('Signing out...', 'info');
 
-            try {
-              // Try to sign out properly
-              await signOut();
-            } catch (error) {
-              console.error('Sign out error:', error);
-            }
+          try {
+            // Try to sign out properly
+            await signOut();
+          } catch (error) {
+            console.error('Sign out error:', error);
+          }
 
-            // Always navigate to login screen
-            router.replace('/auth/login');
-          },
+          // Always navigate to login screen
+          router.replace('/auth/login');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const toggleTheme = () => {
@@ -104,25 +105,37 @@ export default function ProfileScreen() {
 
   const getJoinDate = () => {
     // Since we don't have user creation date, we'll show a placeholder
-    return new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
+    return new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   const getTotalWords = () => {
     return notes.reduce((total, note) => {
-      return total + note.content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      return (
+        total +
+        note.content
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0).length
+      );
     }, 0);
   };
 
   if (!user) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.authPrompt}>
-          <Text style={[styles.authTitle, { color: colors.onSurface }]}>Profile</Text>
-          <Text style={[styles.authSubtitle, { color: colors.onSurfaceVariant }]}>
+          <Text style={[styles.authTitle, { color: colors.onSurface }]}>
+            Profile
+          </Text>
+          <Text
+            style={[styles.authSubtitle, { color: colors.onSurfaceVariant }]}
+          >
             Please sign in to view your profile
           </Text>
         </View>
@@ -131,7 +144,9 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <LinearGradient
         colors={[colors.primary + '15', colors.background]}
         style={styles.gradient}
@@ -145,38 +160,58 @@ export default function ProfileScreen() {
             },
           ]}
         >
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             {/* Profile Header */}
-            <View style={[styles.profileHeader, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.profileHeader,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               <LinearGradient
                 colors={[colors.primary + '20', colors.surface]}
                 style={styles.profileGradient}
               >
-                <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
+                <View
+                  style={[
+                    styles.avatarContainer,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.avatarText}>
                     {user.email?.charAt(0).toUpperCase() || 'U'}
                   </Text>
                 </View>
-                
+
                 <Text style={[styles.userName, { color: colors.onSurface }]}>
                   {user.email?.split('@')[0] || 'User'}
                 </Text>
-                
+
                 <View style={styles.userInfo}>
                   <View style={styles.infoItem}>
                     <Mail size={16} color={colors.onSurfaceVariant} />
-                    <Text style={[styles.infoText, { color: colors.onSurfaceVariant }]}>
+                    <Text
+                      style={[
+                        styles.infoText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
                       {user.email}
                     </Text>
                   </View>
-                  
+
                   <View style={styles.infoItem}>
                     <Calendar size={16} color={colors.onSurfaceVariant} />
-                    <Text style={[styles.infoText, { color: colors.onSurfaceVariant }]}>
+                    <Text
+                      style={[
+                        styles.infoText,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
                       Joined {getJoinDate()}
                     </Text>
                   </View>
@@ -185,32 +220,61 @@ export default function ProfileScreen() {
             </View>
 
             {/* Stats */}
-            <View style={[styles.statsContainer, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.statsContainer,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
                 Your Statistics
               </Text>
-              
+
               <View style={styles.statsGrid}>
                 <View style={styles.statCard}>
-                  <View style={[styles.statIcon, { backgroundColor: colors.primary + '20' }]}>
+                  <View
+                    style={[
+                      styles.statIcon,
+                      { backgroundColor: colors.primary + '20' },
+                    ]}
+                  >
                     <FileText size={24} color={colors.primary} />
                   </View>
-                  <Text style={[styles.statNumber, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.statNumber, { color: colors.onSurface }]}
+                  >
                     {notes.length}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Notes
                   </Text>
                 </View>
-                
+
                 <View style={styles.statCard}>
-                  <View style={[styles.statIcon, { backgroundColor: colors.primary + '20' }]}>
+                  <View
+                    style={[
+                      styles.statIcon,
+                      { backgroundColor: colors.primary + '20' },
+                    ]}
+                  >
                     <Heart size={24} color={colors.primary} />
                   </View>
-                  <Text style={[styles.statNumber, { color: colors.onSurface }]}>
+                  <Text
+                    style={[styles.statNumber, { color: colors.onSurface }]}
+                  >
                     {getTotalWords()}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Words
                   </Text>
                 </View>
@@ -218,85 +282,154 @@ export default function ProfileScreen() {
             </View>
 
             {/* Settings */}
-            <View style={[styles.settingsContainer, { backgroundColor: colors.surface }]}>
+            <View
+              style={[
+                styles.settingsContainer,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               <Text style={[styles.sectionTitle, { color: colors.onSurface }]}>
                 Settings
               </Text>
-              
+
               <View style={styles.settingsList}>
-                <Pressable 
-                  style={styles.settingItem}
-                  onPress={toggleTheme}
-                >
+                <Pressable style={styles.settingItem} onPress={toggleTheme}>
                   <View style={styles.settingLeft}>
-                    <View style={[styles.settingIcon, { backgroundColor: colors.primary + '20' }]}>
-                      {theme === 'light' ? 
-                        <Moon size={20} color={colors.primary} /> :
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: colors.primary + '20' },
+                      ]}
+                    >
+                      {theme === 'light' ? (
+                        <Moon size={20} color={colors.primary} />
+                      ) : (
                         <Sun size={20} color={colors.primary} />
-                      }
+                      )}
                     </View>
                     <View>
-                      <Text style={[styles.settingTitle, { color: colors.onSurface }]}>
+                      <Text
+                        style={[
+                          styles.settingTitle,
+                          { color: colors.onSurface },
+                        ]}
+                      >
                         Theme
                       </Text>
-                      <Text style={[styles.settingSubtitle, { color: colors.onSurfaceVariant }]}>
-                        {theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                      <Text
+                        style={[
+                          styles.settingSubtitle,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
+                        {theme === 'light'
+                          ? 'Switch to dark mode'
+                          : 'Switch to light mode'}
                       </Text>
                     </View>
                   </View>
                 </Pressable>
-                
-                <Pressable 
+
+                <Pressable
                   style={styles.settingItem}
                   onPress={() => showMessage('Settings coming soon!', 'info')}
                 >
                   <View style={styles.settingLeft}>
-                    <View style={[styles.settingIcon, { backgroundColor: colors.primary + '20' }]}>
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: colors.primary + '20' },
+                      ]}
+                    >
                       <Settings size={20} color={colors.primary} />
                     </View>
                     <View>
-                      <Text style={[styles.settingTitle, { color: colors.onSurface }]}>
+                      <Text
+                        style={[
+                          styles.settingTitle,
+                          { color: colors.onSurface },
+                        ]}
+                      >
                         Preferences
                       </Text>
-                      <Text style={[styles.settingSubtitle, { color: colors.onSurfaceVariant }]}>
+                      <Text
+                        style={[
+                          styles.settingSubtitle,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
                         App settings and preferences
                       </Text>
                     </View>
                   </View>
                 </Pressable>
-                
-                <Pressable 
+
+                <Pressable
                   style={styles.settingItem}
-                  onPress={() => showMessage('Privacy settings coming soon!', 'info')}
+                  onPress={() =>
+                    showMessage('Privacy settings coming soon!', 'info')
+                  }
                 >
                   <View style={styles.settingLeft}>
-                    <View style={[styles.settingIcon, { backgroundColor: colors.primary + '20' }]}>
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: colors.primary + '20' },
+                      ]}
+                    >
                       <Shield size={20} color={colors.primary} />
                     </View>
                     <View>
-                      <Text style={[styles.settingTitle, { color: colors.onSurface }]}>
+                      <Text
+                        style={[
+                          styles.settingTitle,
+                          { color: colors.onSurface },
+                        ]}
+                      >
                         Privacy & Security
                       </Text>
-                      <Text style={[styles.settingSubtitle, { color: colors.onSurfaceVariant }]}>
+                      <Text
+                        style={[
+                          styles.settingSubtitle,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
                         Manage your privacy settings
                       </Text>
                     </View>
                   </View>
                 </Pressable>
-                
-                <Pressable 
+
+                <Pressable
                   style={styles.settingItem}
-                  onPress={() => showMessage('Help center coming soon!', 'info')}
+                  onPress={() =>
+                    showMessage('Help center coming soon!', 'info')
+                  }
                 >
                   <View style={styles.settingLeft}>
-                    <View style={[styles.settingIcon, { backgroundColor: colors.primary + '20' }]}>
+                    <View
+                      style={[
+                        styles.settingIcon,
+                        { backgroundColor: colors.primary + '20' },
+                      ]}
+                    >
                       <HelpCircle size={20} color={colors.primary} />
                     </View>
                     <View>
-                      <Text style={[styles.settingTitle, { color: colors.onSurface }]}>
+                      <Text
+                        style={[
+                          styles.settingTitle,
+                          { color: colors.onSurface },
+                        ]}
+                      >
                         Help & Support
                       </Text>
-                      <Text style={[styles.settingSubtitle, { color: colors.onSurfaceVariant }]}>
+                      <Text
+                        style={[
+                          styles.settingSubtitle,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
                         Get help and contact support
                       </Text>
                     </View>

@@ -1,28 +1,28 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
-  Platform, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
   Animated,
   Pressable,
-  Alert
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  ArrowRight, 
-  Play, 
-  Wifi, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  Play,
+  Wifi,
   WifiOff,
   AlertTriangle,
-  Zap
+  Zap,
 } from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -41,10 +41,10 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [networkError, setNetworkError] = useState(false);
-  
+
   const { signIn, signInOfflineDemo } = useAuth();
   const { colors } = useTheme();
-  
+
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -111,10 +111,10 @@ export default function LoginScreen() {
 
   const handleOfflineDemo = async () => {
     setDemoLoading(true);
-    
+
     try {
       await signInOfflineDemo();
-      
+
       Alert.alert(
         '🎮 Demo Mode Active!',
         'Welcome to the offline demo! You can explore all features:\n\n✨ Create and edit notes\n🔍 Search and organize\n🎨 Switch themes\n📱 Responsive design\n\nAll features work perfectly offline!',
@@ -123,7 +123,7 @@ export default function LoginScreen() {
             text: 'Start Exploring',
             onPress: () => router.replace('/(tabs)'),
           },
-        ]
+        ],
       );
     } catch (error: any) {
       setError(error.message || 'Demo mode failed to start');
@@ -143,7 +143,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     setNetworkError(false);
-    
+
     // Add loading animation
     Animated.timing(scaleAnim, {
       toValue: 0.95,
@@ -153,7 +153,7 @@ export default function LoginScreen() {
 
     try {
       await signIn(email, password);
-      
+
       // Success animation
       Animated.sequence([
         Animated.timing(scaleAnim, {
@@ -167,11 +167,11 @@ export default function LoginScreen() {
           useNativeDriver: true,
         }),
       ]).start();
-      
+
       router.replace('/(tabs)');
     } catch (err: any) {
       console.error('Login error:', err);
-      
+
       // Error animation
       Animated.sequence([
         Animated.timing(slideAnim, {
@@ -190,22 +190,22 @@ export default function LoginScreen() {
           useNativeDriver: true,
         }),
       ]).start();
-      
+
       // Check if this is a network-related error
-      const isNetworkError = err.message && (
-        err.message.includes('network') || 
-        err.message.includes('connection') ||
-        err.message.includes('offline') ||
-        err.message.includes('timeout')
-      );
-      
+      const isNetworkError =
+        err.message &&
+        (err.message.includes('network') ||
+          err.message.includes('connection') ||
+          err.message.includes('offline') ||
+          err.message.includes('timeout'));
+
       if (isNetworkError) {
         setNetworkError(true);
         setError('Connection failed. Try Demo Mode for offline access!');
       } else {
         setError(err.message || 'Login failed');
       }
-      
+
       setShowError(true);
     } finally {
       setLoading(false);
@@ -223,12 +223,14 @@ export default function LoginScreen() {
     Alert.alert(
       'Demo Credentials',
       'Demo credentials filled! If you experience connection issues, use the "Offline Demo" button for instant access.',
-      [{ text: 'OK', style: 'default' }]
+      [{ text: 'OK', style: 'default' }],
     );
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <LinearGradient
         colors={[colors.primary + '10', colors.background]}
         style={styles.gradient}
@@ -237,25 +239,33 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               styles.content,
               {
                 opacity: fadeAnim,
-                transform: [
-                  { translateY: slideAnim },
-                  { scale: scaleAnim }
-                ]
-              }
+                transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+              },
             ]}
           >
             {/* Header */}
             <View style={styles.header}>
-              <View style={[styles.logoContainer, { backgroundColor: colors.primary + '20' }]}>
-                <Text style={[styles.logoText, { color: colors.primary }]}>📝</Text>
+              <View
+                style={[
+                  styles.logoContainer,
+                  { backgroundColor: colors.primary + '20' },
+                ]}
+              >
+                <Text style={[styles.logoText, { color: colors.primary }]}>
+                  📝
+                </Text>
               </View>
-              <Text style={[styles.title, { color: colors.onSurface }]}>Welcome Back</Text>
-              <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
+              <Text style={[styles.title, { color: colors.onSurface }]}>
+                Welcome Back
+              </Text>
+              <Text
+                style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
+              >
                 Sign in to continue to your notes
               </Text>
             </View>
@@ -282,10 +292,17 @@ export default function LoginScreen() {
               >
                 <WifiOff size={20} color={colors.error} />
                 <View style={styles.networkBannerText}>
-                  <Text style={[styles.networkBannerTitle, { color: colors.error }]}>
+                  <Text
+                    style={[styles.networkBannerTitle, { color: colors.error }]}
+                  >
                     Connection Issue
                   </Text>
-                  <Text style={[styles.networkBannerSubtitle, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.networkBannerSubtitle,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Try Offline Demo for instant access
                   </Text>
                 </View>
@@ -293,7 +310,15 @@ export default function LoginScreen() {
             )}
 
             {/* Offline Demo Highlight */}
-            <View style={[styles.demoHighlight, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}>
+            <View
+              style={[
+                styles.demoHighlight,
+                {
+                  backgroundColor: colors.primary + '15',
+                  borderColor: colors.primary + '40',
+                },
+              ]}
+            >
               <LinearGradient
                 colors={[colors.primary + '20', colors.primary + '10']}
                 style={styles.demoHighlightGradient}
@@ -301,15 +326,25 @@ export default function LoginScreen() {
                 <View style={styles.demoHighlightContent}>
                   <Zap size={24} color={colors.primary} />
                   <View style={styles.demoHighlightText}>
-                    <Text style={[styles.demoHighlightTitle, { color: colors.primary }]}>
+                    <Text
+                      style={[
+                        styles.demoHighlightTitle,
+                        { color: colors.primary },
+                      ]}
+                    >
                       Instant Demo Access
                     </Text>
-                    <Text style={[styles.demoHighlightSubtitle, { color: colors.onSurfaceVariant }]}>
+                    <Text
+                      style={[
+                        styles.demoHighlightSubtitle,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
                       Try all features without internet connection
                     </Text>
                   </View>
                 </View>
-                
+
                 <Button
                   title="Start Demo"
                   onPress={handleOfflineDemo}
@@ -355,14 +390,15 @@ export default function LoginScreen() {
                   error={passwordError}
                   leftIcon={<Lock size={20} color={colors.onSurfaceVariant} />}
                   rightIcon={
-                    <Pressable 
+                    <Pressable
                       onPress={() => setShowPassword(!showPassword)}
                       style={styles.eyeButton}
                     >
-                      {showPassword ? 
-                        <EyeOff size={20} color={colors.onSurfaceVariant} /> : 
+                      {showPassword ? (
+                        <EyeOff size={20} color={colors.onSurfaceVariant} />
+                      ) : (
                         <Eye size={20} color={colors.onSurfaceVariant} />
-                      }
+                      )}
                     </Pressable>
                   }
                   style={styles.input}
@@ -378,12 +414,20 @@ export default function LoginScreen() {
                 rightIcon={<ArrowRight size={20} color="#FFFFFF" />}
               />
 
-              <Pressable 
+              <Pressable
                 onPress={handleDemoLogin}
-                style={[styles.demoCredentialsButton, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.demoCredentialsButton,
+                  { backgroundColor: colors.surface },
+                ]}
               >
                 <Wifi size={16} color={colors.onSurface} />
-                <Text style={[styles.demoCredentialsText, { color: colors.onSurface }]}>
+                <Text
+                  style={[
+                    styles.demoCredentialsText,
+                    { color: colors.onSurface },
+                  ]}
+                >
                   Fill Demo Credentials
                 </Text>
               </Pressable>
@@ -391,10 +435,12 @@ export default function LoginScreen() {
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={[styles.footerText, { color: colors.onSurfaceVariant }]}>
+              <Text
+                style={[styles.footerText, { color: colors.onSurfaceVariant }]}
+              >
                 Don't have an account?{' '}
               </Text>
-              <Pressable 
+              <Pressable
                 onPress={() => router.push('/auth/register')}
                 style={styles.linkContainer}
               >

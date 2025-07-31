@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Edit, Trash2, ArrowLeft } from 'lucide-react-native';
 import { Button } from '@/components/ui/Button';
@@ -12,18 +19,23 @@ export default function NoteDetailScreen() {
   const [note, setNote] = useState<Note | null>(null);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarType, setSnackbarType] = useState<'info' | 'success' | 'error'>('info');
-  
+  const [snackbarType, setSnackbarType] = useState<
+    'info' | 'success' | 'error'
+  >('info');
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const { notes, deleteNote } = useNotes();
   const { colors } = useTheme();
 
   useEffect(() => {
-    const foundNote = notes.find(n => n.id === id);
+    const foundNote = notes.find((n) => n.id === id);
     setNote(foundNote || null);
   }, [notes, id]);
 
-  const showMessage = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showMessage = (
+    message: string,
+    type: 'info' | 'success' | 'error' = 'info',
+  ) => {
     setSnackbarMessage(message);
     setSnackbarType(type);
     setShowSnackbar(true);
@@ -31,7 +43,7 @@ export default function NoteDetailScreen() {
 
   const handleDelete = async () => {
     if (!note) return;
-    
+
     try {
       await deleteNote(note.id);
       showMessage('Note deleted successfully', 'success');
@@ -56,7 +68,9 @@ export default function NoteDetailScreen() {
 
   if (!note) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.onSurface }]}>
             Note not found
@@ -78,7 +92,9 @@ export default function NoteDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
@@ -92,7 +108,7 @@ export default function NoteDetailScreen() {
         >
           <ArrowLeft size={24} color={colors.onSurface} />
         </TouchableOpacity>
-        
+
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={() => router.push(`/(tabs)/add-note?id=${note.id}`)}
@@ -100,10 +116,7 @@ export default function NoteDetailScreen() {
           >
             <Edit size={20} color={colors.onSurfaceVariant} />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={styles.actionButton}
-          >
+          <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
             <Trash2 size={20} color={colors.error} />
           </TouchableOpacity>
         </View>
@@ -114,7 +127,7 @@ export default function NoteDetailScreen() {
           <Text style={[styles.title, { color: colors.onSurface }]}>
             {note.title || 'Untitled'}
           </Text>
-          
+
           <Text style={[styles.timestamp, { color: colors.onSurfaceVariant }]}>
             {formatDate(note.timestamp)}
           </Text>

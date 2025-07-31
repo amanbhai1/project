@@ -17,7 +17,7 @@ export function useNotes() {
     }
 
     setLoading(true);
-    
+
     let unsubscribe: (() => void) | undefined;
 
     if (isOfflineMode) {
@@ -38,7 +38,9 @@ export function useNotes() {
       } catch (err: any) {
         console.error('Notes subscription error:', err);
         if (err.message === 'FIRESTORE_INDEX_REQUIRED') {
-          setError('Database index missing. Please deploy Firestore indexes using: firebase deploy --only firestore:indexes');
+          setError(
+            'Database index missing. Please deploy Firestore indexes using: firebase deploy --only firestore:indexes',
+          );
         } else {
           setError('Failed to load notes. Please check your connection.');
         }
@@ -55,17 +57,17 @@ export function useNotes() {
 
   const createNote = async (noteData: CreateNoteData) => {
     if (!user) throw new Error('User not authenticated');
-    
+
     try {
       setError(null);
-      
+
       if (isOfflineMode) {
         await offlineDemoService.createNote(noteData);
       } else {
         await notesService.createNote(user.uid, noteData);
       }
     } catch (err: any) {
-      const errorMessage = isOfflineMode 
+      const errorMessage = isOfflineMode
         ? 'Failed to create note in demo mode'
         : 'Failed to create note. Please check your connection.';
       setError(errorMessage);
@@ -76,14 +78,14 @@ export function useNotes() {
   const updateNote = async (noteId: string, noteData: UpdateNoteData) => {
     try {
       setError(null);
-      
+
       if (isOfflineMode) {
         await offlineDemoService.updateNote(noteId, noteData);
       } else {
         await notesService.updateNote(noteId, noteData);
       }
     } catch (err: any) {
-      const errorMessage = isOfflineMode 
+      const errorMessage = isOfflineMode
         ? 'Failed to update note in demo mode'
         : 'Failed to update note. Please check your connection.';
       setError(errorMessage);
@@ -94,14 +96,14 @@ export function useNotes() {
   const deleteNote = async (noteId: string) => {
     try {
       setError(null);
-      
+
       if (isOfflineMode) {
         await offlineDemoService.deleteNote(noteId);
       } else {
         await notesService.deleteNote(noteId);
       }
     } catch (err: any) {
-      const errorMessage = isOfflineMode 
+      const errorMessage = isOfflineMode
         ? 'Failed to delete note in demo mode'
         : 'Failed to delete note. Please check your connection.';
       setError(errorMessage);

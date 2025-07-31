@@ -1,27 +1,27 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
   Platform,
   Animated,
   Pressable,
   ScrollView,
-  Alert
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  ArrowRight, 
-  Play, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  Play,
   Zap,
-  WifiOff
+  WifiOff,
 } from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -43,10 +43,10 @@ export default function RegisterScreen() {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [networkError, setNetworkError] = useState(false);
-  
+
   const { signUp, signInOfflineDemo } = useAuth();
   const { colors } = useTheme();
-  
+
   // Animation references
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -128,16 +128,16 @@ export default function RegisterScreen() {
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
-    
+
     return isEmailValid && isPasswordValid && isConfirmPasswordValid;
   };
 
   const handleOfflineDemo = async () => {
     setDemoLoading(true);
-    
+
     try {
       await signInOfflineDemo();
-      
+
       Alert.alert(
         '🎮 Demo Mode Active!',
         'Welcome to the offline demo! Perfect for:\n\n✨ Testing all features\n📝 Creating sample notes\n🎨 Exploring the interface\n📱 Trying different views\n\nEverything works offline!',
@@ -146,7 +146,7 @@ export default function RegisterScreen() {
             text: 'Start Exploring',
             onPress: () => router.replace('/(tabs)'),
           },
-        ]
+        ],
       );
     } catch (error: any) {
       setError(error.message || 'Demo mode failed to start');
@@ -163,7 +163,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     setNetworkError(false);
-    
+
     // Add loading animation
     Animated.timing(scaleAnim, {
       toValue: 0.95,
@@ -173,7 +173,7 @@ export default function RegisterScreen() {
 
     try {
       await signUp(email, password);
-      
+
       // Success animation
       Animated.sequence([
         Animated.timing(scaleAnim, {
@@ -187,11 +187,11 @@ export default function RegisterScreen() {
           useNativeDriver: true,
         }),
       ]).start();
-      
+
       router.replace('/(tabs)');
     } catch (err: any) {
       console.error('Registration error:', err);
-      
+
       // Error animation
       Animated.sequence([
         Animated.timing(slideAnim, {
@@ -210,22 +210,22 @@ export default function RegisterScreen() {
           useNativeDriver: true,
         }),
       ]).start();
-      
+
       // Check if this is a network-related error
-      const isNetworkError = err.message && (
-        err.message.includes('network') || 
-        err.message.includes('connection') ||
-        err.message.includes('not available') ||
-        err.message.includes('timeout')
-      );
-      
+      const isNetworkError =
+        err.message &&
+        (err.message.includes('network') ||
+          err.message.includes('connection') ||
+          err.message.includes('not available') ||
+          err.message.includes('timeout'));
+
       if (isNetworkError) {
         setNetworkError(true);
         setError('Registration unavailable. Try Demo Mode for instant access!');
       } else {
         setError(err.message || 'Registration failed');
       }
-      
+
       setShowError(true);
     } finally {
       setLoading(false);
@@ -238,7 +238,9 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <LinearGradient
         colors={[colors.primary + '10', colors.background]}
         style={styles.gradient}
@@ -248,25 +250,33 @@ export default function RegisterScreen() {
           style={styles.keyboardView}
         >
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.content,
                 {
                   opacity: fadeAnim,
-                  transform: [
-                    { translateY: slideAnim },
-                    { scale: scaleAnim }
-                  ]
-                }
+                  transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+                },
               ]}
             >
               {/* Header */}
               <View style={styles.header}>
-                <View style={[styles.logoContainer, { backgroundColor: colors.primary + '20' }]}>
-                  <Text style={[styles.logoText, { color: colors.primary }]}>✨</Text>
+                <View
+                  style={[
+                    styles.logoContainer,
+                    { backgroundColor: colors.primary + '20' },
+                  ]}
+                >
+                  <Text style={[styles.logoText, { color: colors.primary }]}>
+                    ✨
+                  </Text>
                 </View>
-                <Text style={[styles.title, { color: colors.onSurface }]}>Create Account</Text>
-                <Text style={[styles.subtitle, { color: colors.onSurfaceVariant }]}>
+                <Text style={[styles.title, { color: colors.onSurface }]}>
+                  Create Account
+                </Text>
+                <Text
+                  style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
+                >
                   Join us and start organizing your notes
                 </Text>
               </View>
@@ -293,10 +303,20 @@ export default function RegisterScreen() {
                 >
                   <WifiOff size={20} color={colors.error} />
                   <View style={styles.networkBannerText}>
-                    <Text style={[styles.networkBannerTitle, { color: colors.error }]}>
+                    <Text
+                      style={[
+                        styles.networkBannerTitle,
+                        { color: colors.error },
+                      ]}
+                    >
                       Registration Unavailable
                     </Text>
-                    <Text style={[styles.networkBannerSubtitle, { color: colors.onSurfaceVariant }]}>
+                    <Text
+                      style={[
+                        styles.networkBannerSubtitle,
+                        { color: colors.onSurfaceVariant },
+                      ]}
+                    >
                       Use Demo Mode for instant access
                     </Text>
                   </View>
@@ -304,7 +324,15 @@ export default function RegisterScreen() {
               )}
 
               {/* Offline Demo Highlight */}
-              <View style={[styles.demoHighlight, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '40' }]}>
+              <View
+                style={[
+                  styles.demoHighlight,
+                  {
+                    backgroundColor: colors.primary + '15',
+                    borderColor: colors.primary + '40',
+                  },
+                ]}
+              >
                 <LinearGradient
                   colors={[colors.primary + '20', colors.primary + '10']}
                   style={styles.demoHighlightGradient}
@@ -312,15 +340,25 @@ export default function RegisterScreen() {
                   <View style={styles.demoHighlightContent}>
                     <Zap size={24} color={colors.primary} />
                     <View style={styles.demoHighlightText}>
-                      <Text style={[styles.demoHighlightTitle, { color: colors.primary }]}>
+                      <Text
+                        style={[
+                          styles.demoHighlightTitle,
+                          { color: colors.primary },
+                        ]}
+                      >
                         Skip Registration
                       </Text>
-                      <Text style={[styles.demoHighlightSubtitle, { color: colors.onSurfaceVariant }]}>
+                      <Text
+                        style={[
+                          styles.demoHighlightSubtitle,
+                          { color: colors.onSurfaceVariant },
+                        ]}
+                      >
                         Try all features instantly with demo mode
                       </Text>
                     </View>
                   </View>
-                  
+
                   <Button
                     title="Start Demo"
                     onPress={handleOfflineDemo}
@@ -348,7 +386,9 @@ export default function RegisterScreen() {
                     autoCapitalize="none"
                     autoComplete="email"
                     error={emailError}
-                    leftIcon={<Mail size={20} color={colors.onSurfaceVariant} />}
+                    leftIcon={
+                      <Mail size={20} color={colors.onSurfaceVariant} />
+                    }
                     style={styles.input}
                   />
                 </View>
@@ -367,16 +407,19 @@ export default function RegisterScreen() {
                     secureTextEntry={!showPassword}
                     autoComplete="new-password"
                     error={passwordError}
-                    leftIcon={<Lock size={20} color={colors.onSurfaceVariant} />}
+                    leftIcon={
+                      <Lock size={20} color={colors.onSurfaceVariant} />
+                    }
                     rightIcon={
-                      <Pressable 
+                      <Pressable
                         onPress={() => setShowPassword(!showPassword)}
                         style={styles.eyeButton}
                       >
-                        {showPassword ? 
-                          <EyeOff size={20} color={colors.onSurfaceVariant} /> : 
+                        {showPassword ? (
+                          <EyeOff size={20} color={colors.onSurfaceVariant} />
+                        ) : (
                           <Eye size={20} color={colors.onSurfaceVariant} />
-                        }
+                        )}
                       </Pressable>
                     }
                     style={styles.input}
@@ -394,16 +437,21 @@ export default function RegisterScreen() {
                     secureTextEntry={!showConfirmPassword}
                     autoComplete="new-password"
                     error={confirmPasswordError}
-                    leftIcon={<Lock size={20} color={colors.onSurfaceVariant} />}
+                    leftIcon={
+                      <Lock size={20} color={colors.onSurfaceVariant} />
+                    }
                     rightIcon={
-                      <Pressable 
-                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      <Pressable
+                        onPress={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         style={styles.eyeButton}
                       >
-                        {showConfirmPassword ? 
-                          <EyeOff size={20} color={colors.onSurfaceVariant} /> : 
+                        {showConfirmPassword ? (
+                          <EyeOff size={20} color={colors.onSurfaceVariant} />
+                        ) : (
                           <Eye size={20} color={colors.onSurfaceVariant} />
-                        }
+                        )}
                       </Pressable>
                     }
                     style={styles.input}
@@ -423,10 +471,15 @@ export default function RegisterScreen() {
 
               {/* Footer */}
               <View style={styles.footer}>
-                <Text style={[styles.footerText, { color: colors.onSurfaceVariant }]}>
+                <Text
+                  style={[
+                    styles.footerText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
                   Already have an account?{' '}
                 </Text>
-                <Pressable 
+                <Pressable
                   onPress={() => router.push('/auth/login')}
                   style={styles.linkContainer}
                 >

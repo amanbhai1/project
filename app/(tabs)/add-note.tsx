@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  KeyboardAvoidingView, 
-  Platform, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Animated,
   Pressable,
-  Alert
+  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Save, 
-  ArrowLeft, 
-  FileText, 
-  Type, 
+import {
+  Save,
+  ArrowLeft,
+  FileText,
+  Type,
   Calendar,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react-native';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -35,17 +35,19 @@ export default function AddNoteScreen() {
   const [loading, setLoading] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarType, setSnackbarType] = useState<'info' | 'success' | 'error'>('info');
+  const [snackbarType, setSnackbarType] = useState<
+    'info' | 'success' | 'error'
+  >('info');
   const [initialized, setInitialized] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const { notes, createNote, updateNote } = useNotes();
   const { user, loading: authLoading } = useAuth();
   const { colors } = useTheme();
-  
+
   const isEditing = !!id;
-  const existingNote = notes.find(note => note.id === id);
+  const existingNote = notes.find((note) => note.id === id);
   const mountedRef = useRef(true);
 
   // Animation references
@@ -83,7 +85,7 @@ export default function AddNoteScreen() {
         }, 0);
         return () => clearTimeout(timeoutId);
       }
-    }, [user, authLoading])
+    }, [user, authLoading]),
   );
 
   useEffect(() => {
@@ -95,7 +97,7 @@ export default function AddNoteScreen() {
   useEffect(() => {
     if (user && !initialized) {
       setInitialized(true);
-      
+
       // Entrance animations
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -119,7 +121,10 @@ export default function AddNoteScreen() {
     }
   }, [isEditing, existingNote, initialized]);
 
-  const showMessage = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showMessage = (
+    message: string,
+    type: 'info' | 'success' | 'error' = 'info',
+  ) => {
     setSnackbarMessage(message);
     setSnackbarType(type);
     setShowSnackbar(true);
@@ -141,9 +146,9 @@ export default function AddNoteScreen() {
         await createNote({ title: title.trim(), content: content.trim() });
         showMessage('Note created successfully', 'success');
       }
-      
+
       setHasChanges(false);
-      
+
       setTimeout(() => {
         if (mountedRef.current) {
           if (router.canGoBack()) {
@@ -156,7 +161,7 @@ export default function AddNoteScreen() {
     } catch (error) {
       showMessage(
         isEditing ? 'Failed to update note' : 'Failed to create note',
-        'error'
+        'error',
       );
     } finally {
       setLoading(false);
@@ -186,7 +191,7 @@ export default function AddNoteScreen() {
               }
             },
           },
-        ]
+        ],
       );
     } else {
       if (mountedRef.current) {
@@ -200,7 +205,10 @@ export default function AddNoteScreen() {
   };
 
   const getWordCount = (text: string) => {
-    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    return text
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
   };
 
   const getCharCount = (text: string) => {
@@ -210,7 +218,9 @@ export default function AddNoteScreen() {
   // Show loading state while auth is loading
   if (authLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.loadingContainer}>
           {/* Could add a loading spinner here */}
         </View>
@@ -224,7 +234,9 @@ export default function AddNoteScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <LinearGradient
         colors={[colors.primary + '08', colors.background]}
         style={styles.gradient}
@@ -246,15 +258,25 @@ export default function AddNoteScreen() {
             >
               <ArrowLeft size={20} color={colors.onSurface} />
             </Pressable>
-            
+
             <View style={styles.headerCenter}>
               <Text style={[styles.headerTitle, { color: colors.onSurface }]}>
                 {isEditing ? 'Edit Note' : 'New Note'}
               </Text>
               {hasChanges && (
                 <View style={styles.changesIndicator}>
-                  <View style={[styles.changesDot, { backgroundColor: colors.primary }]} />
-                  <Text style={[styles.changesText, { color: colors.onSurfaceVariant }]}>
+                  <View
+                    style={[
+                      styles.changesDot,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.changesText,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Unsaved changes
                   </Text>
                 </View>
@@ -313,7 +335,9 @@ export default function AddNoteScreen() {
                   multiline
                   numberOfLines={15}
                   style={styles.contentInput}
-                  leftIcon={<FileText size={20} color={colors.onSurfaceVariant} />}
+                  leftIcon={
+                    <FileText size={20} color={colors.onSurfaceVariant} />
+                  }
                 />
               </View>
 
@@ -323,27 +347,52 @@ export default function AddNoteScreen() {
                   <Text style={[styles.statNumber, { color: colors.primary }]}>
                     {getWordCount(content)}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Words
                   </Text>
                 </View>
-                
-                <View style={[styles.statDivider, { backgroundColor: colors.outline }]} />
-                
+
+                <View
+                  style={[
+                    styles.statDivider,
+                    { backgroundColor: colors.outline },
+                  ]}
+                />
+
                 <View style={styles.statItem}>
                   <Text style={[styles.statNumber, { color: colors.primary }]}>
                     {getCharCount(content)}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     Characters
                   </Text>
                 </View>
-                
-                <View style={[styles.statDivider, { backgroundColor: colors.outline }]} />
-                
+
+                <View
+                  style={[
+                    styles.statDivider,
+                    { backgroundColor: colors.outline },
+                  ]}
+                />
+
                 <View style={styles.statItem}>
                   <Calendar size={16} color={colors.onSurfaceVariant} />
-                  <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      { color: colors.onSurfaceVariant },
+                    ]}
+                  >
                     {new Date().toLocaleDateString()}
                   </Text>
                 </View>

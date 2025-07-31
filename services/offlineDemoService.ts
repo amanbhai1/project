@@ -55,21 +55,24 @@ class OfflineDemoService {
       {
         id: generateId(),
         title: 'Welcome to Demo Mode! 🎉',
-        content: 'This is an offline demo of the notes app. You can create, edit, and delete notes even without an internet connection!\n\nAll features are available:\n• Create new notes\n• Edit existing notes\n• Search and filter\n• Delete notes\n• Switch between list and grid view\n\nYour demo notes are saved locally and will persist until you clear your browser data.',
+        content:
+          'This is an offline demo of the notes app. You can create, edit, and delete notes even without an internet connection!\n\nAll features are available:\n• Create new notes\n• Edit existing notes\n• Search and filter\n• Delete notes\n• Switch between list and grid view\n\nYour demo notes are saved locally and will persist until you clear your browser data.',
         userId: OFFLINE_DEMO_USER.uid,
         timestamp: new Date(now.getTime() - 60000), // 1 minute ago
       },
       {
         id: generateId(),
         title: 'Features Overview',
-        content: '✨ Interactive UI with smooth animations\n📝 Rich text editing experience\n🔍 Real-time search functionality\n📱 Responsive design for all devices\n🎨 Light and dark theme support\n💾 Auto-save capabilities\n🔄 Grid and list view modes',
+        content:
+          '✨ Interactive UI with smooth animations\n📝 Rich text editing experience\n🔍 Real-time search functionality\n📱 Responsive design for all devices\n🎨 Light and dark theme support\n💾 Auto-save capabilities\n🔄 Grid and list view modes',
         userId: OFFLINE_DEMO_USER.uid,
         timestamp: new Date(now.getTime() - 120000), // 2 minutes ago
       },
       {
         id: generateId(),
         title: 'Try Creating a Note!',
-        content: 'Tap the + button to create your own note and experience the smooth, interactive interface. Everything works just like the real app!',
+        content:
+          'Tap the + button to create your own note and experience the smooth, interactive interface. Everything works just like the real app!',
         userId: OFFLINE_DEMO_USER.uid,
         timestamp: new Date(now.getTime() - 180000), // 3 minutes ago
       },
@@ -78,19 +81,24 @@ class OfflineDemoService {
 
   private async saveNotes(): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(this.notes));
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.NOTES,
+        JSON.stringify(this.notes),
+      );
     } catch (error) {
       console.error('Error saving offline notes:', error);
     }
   }
 
   private notifyListeners(): void {
-    this.listeners.forEach(callback => callback([...this.notes]));
+    this.listeners.forEach((callback) => callback([...this.notes]));
   }
 
   // Get all notes for the demo user
   async getNotes(): Promise<Note[]> {
-    return [...this.notes].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return [...this.notes].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
   }
 
   // Create a new note
@@ -105,13 +113,13 @@ class OfflineDemoService {
     this.notes.push(newNote);
     await this.saveNotes();
     this.notifyListeners();
-    
+
     return newNote.id;
   }
 
   // Update an existing note
   async updateNote(noteId: string, noteData: UpdateNoteData): Promise<void> {
-    const noteIndex = this.notes.findIndex(note => note.id === noteId);
+    const noteIndex = this.notes.findIndex((note) => note.id === noteId);
     if (noteIndex === -1) {
       throw new Error('Note not found');
     }
@@ -128,7 +136,7 @@ class OfflineDemoService {
 
   // Delete a note
   async deleteNote(noteId: string): Promise<void> {
-    const noteIndex = this.notes.findIndex(note => note.id === noteId);
+    const noteIndex = this.notes.findIndex((note) => note.id === noteId);
     if (noteIndex === -1) {
       throw new Error('Note not found');
     }
@@ -141,7 +149,7 @@ class OfflineDemoService {
   // Subscribe to notes changes
   subscribeToNotes(callback: (notes: Note[]) => void): () => void {
     this.listeners.push(callback);
-    
+
     // Immediately call with current notes
     callback([...this.notes]);
 

@@ -1,16 +1,24 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  SafeAreaView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  SafeAreaView,
   RefreshControl,
   Animated,
-  Pressable
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Search as SearchIcon, Filter, Grid, List, Star, AlertCircle } from 'lucide-react-native';
+import {
+  Plus,
+  Search as SearchIcon,
+  Filter,
+  Grid,
+  List,
+  Star,
+  AlertCircle,
+} from 'lucide-react-native';
 import { NoteCard } from '@/components/NoteCard';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -24,10 +32,12 @@ export default function NotesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarType, setSnackbarType] = useState<'info' | 'success' | 'error'>('info');
+  const [snackbarType, setSnackbarType] = useState<
+    'info' | 'success' | 'error'
+  >('info');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [showSearch, setShowSearch] = useState(false);
-  
+
   const { notes, loading, deleteNote } = useNotes();
   const { user } = useAuth();
   const { colors } = useTheme();
@@ -77,14 +87,18 @@ export default function NotesScreen() {
 
   const filteredNotes = useMemo(() => {
     if (!searchQuery) return notes;
-    
-    return notes.filter(note =>
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [notes, searchQuery]);
 
-  const showMessage = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+  const showMessage = (
+    message: string,
+    type: 'info' | 'success' | 'error' = 'info',
+  ) => {
     setSnackbarMessage(message);
     setSnackbarType(type);
     setShowSnackbar(true);
@@ -116,16 +130,21 @@ export default function NotesScreen() {
   );
 
   const renderEmptyState = () => (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.emptyState,
         {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-        }
+        },
       ]}
     >
-      <View style={[styles.emptyIconContainer, { backgroundColor: colors.primary + '20' }]}>
+      <View
+        style={[
+          styles.emptyIconContainer,
+          { backgroundColor: colors.primary + '20' },
+        ]}
+      >
         <Text style={styles.emptyIcon}>📝</Text>
       </View>
       <Text style={[styles.emptyTitle, { color: colors.onSurface }]}>
@@ -139,7 +158,10 @@ export default function NotesScreen() {
       {!searchQuery && (
         <Pressable
           onPress={handleCreateNote}
-          style={[styles.createFirstButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.createFirstButton,
+            { backgroundColor: colors.primary },
+          ]}
         >
           <Plus size={20} color="#FFFFFF" />
           <Text style={styles.createFirstText}>Create Your First Note</Text>
@@ -178,17 +200,29 @@ export default function NotesScreen() {
             <View style={styles.demoBannerLeft}>
               <Star size={20} color={colors.primary} />
               <View>
-                <Text style={[styles.demoBannerTitle, { color: colors.primary }]}>
+                <Text
+                  style={[styles.demoBannerTitle, { color: colors.primary }]}
+                >
                   Demo Mode Active
                 </Text>
-                <Text style={[styles.demoBannerText, { color: colors.onSurfaceVariant }]}>
+                <Text
+                  style={[
+                    styles.demoBannerText,
+                    { color: colors.onSurfaceVariant },
+                  ]}
+                >
                   Explore all features! Notes won't be permanently saved.
                 </Text>
               </View>
             </View>
             <Pressable
-              onPress={() => showMessage('Demo mode is perfect for testing! 🎉', 'info')}
-              style={[styles.demoBannerButton, { backgroundColor: colors.primary }]}
+              onPress={() =>
+                showMessage('Demo mode is perfect for testing! 🎉', 'info')
+              }
+              style={[
+                styles.demoBannerButton,
+                { backgroundColor: colors.primary },
+              ]}
             >
               <AlertCircle size={16} color="#FFFFFF" />
             </Pressable>
@@ -199,13 +233,13 @@ export default function NotesScreen() {
   };
 
   const renderHeader = () => (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.header,
         {
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-        }
+        },
       ]}
     >
       <LinearGradient
@@ -215,31 +249,43 @@ export default function NotesScreen() {
         <View style={styles.headerContent}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={[styles.greeting, { color: colors.onSurfaceVariant }]}>
-                Hello {user?.displayName || user?.email?.split('@')[0] || 'there'}! 
+              <Text
+                style={[styles.greeting, { color: colors.onSurfaceVariant }]}
+              >
+                Hello{' '}
+                {user?.displayName || user?.email?.split('@')[0] || 'there'}!
                 {user?.isDemo ? ' 🎮' : ' 👋'}
               </Text>
               <Text style={[styles.title, { color: colors.onSurface }]}>
                 My Notes {user?.isDemo ? '(Demo)' : ''}
               </Text>
             </View>
-            
+
             <View style={styles.headerActions}>
               <Pressable
                 onPress={() => setShowSearch(!showSearch)}
-                style={[styles.actionButton, { backgroundColor: colors.surface }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.surface },
+                ]}
               >
                 <SearchIcon size={20} color={colors.onSurface} />
               </Pressable>
-              
+
               <Pressable
-                onPress={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-                style={[styles.actionButton, { backgroundColor: colors.surface }]}
-              >
-                {viewMode === 'list' ? 
-                  <Grid size={20} color={colors.onSurface} /> :
-                  <List size={20} color={colors.onSurface} />
+                onPress={() =>
+                  setViewMode(viewMode === 'list' ? 'grid' : 'list')
                 }
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
+                {viewMode === 'list' ? (
+                  <Grid size={20} color={colors.onSurface} />
+                ) : (
+                  <List size={20} color={colors.onSurface} />
+                )}
               </Pressable>
             </View>
           </View>
@@ -268,7 +314,9 @@ export default function NotesScreen() {
 
           {notes.length > 0 && (
             <View style={styles.stats}>
-              <Text style={[styles.statsText, { color: colors.onSurfaceVariant }]}>
+              <Text
+                style={[styles.statsText, { color: colors.onSurfaceVariant }]}
+              >
                 {filteredNotes.length} of {notes.length} notes
                 {user?.isDemo ? ' (Demo data)' : ''}
               </Text>
@@ -281,10 +329,16 @@ export default function NotesScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.authPrompt}>
-          <Text style={[styles.authTitle, { color: colors.onSurface }]}>Welcome to Notes</Text>
-          <Text style={[styles.authSubtitle, { color: colors.onSurfaceVariant }]}>
+          <Text style={[styles.authTitle, { color: colors.onSurface }]}>
+            Welcome to Notes
+          </Text>
+          <Text
+            style={[styles.authSubtitle, { color: colors.onSurfaceVariant }]}
+          >
             Please sign in to view your notes
           </Text>
         </View>
@@ -293,18 +347,22 @@ export default function NotesScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Demo Banner */}
       {renderDemoBanner()}
-      
+
       <FlatList
         ListHeaderComponent={renderHeader}
         data={filteredNotes}
         renderItem={renderNote}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
-          filteredNotes.length === 0 ? styles.emptyContainer : styles.listContainer,
-          { paddingBottom: 100 }
+          filteredNotes.length === 0
+            ? styles.emptyContainer
+            : styles.listContainer,
+          { paddingBottom: 100 },
         ]}
         ListEmptyComponent={renderEmptyState}
         refreshControl={

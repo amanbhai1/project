@@ -10,7 +10,7 @@ class NotesService {
     try {
       const queryRef = firestoreService.query(
         this.notesCollection,
-        firestoreService.where('userId', '==', userId)
+        firestoreService.where('userId', '==', userId),
       );
 
       const snapshot = await firestoreService.getDocs(queryRef);
@@ -22,7 +22,9 @@ class NotesService {
       })) as Note[];
 
       // Sort in memory to avoid index requirement
-      return notes.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      return notes.sort(
+        (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+      );
     } catch (error) {
       console.error('Error fetching notes:', error);
       throw error;
@@ -37,7 +39,10 @@ class NotesService {
         timestamp: firestoreService.serverTimestamp(),
       };
 
-      const docRef = await firestoreService.addDoc(this.notesCollection, docData);
+      const docRef = await firestoreService.addDoc(
+        this.notesCollection,
+        docData,
+      );
       return docRef.id;
     } catch (error) {
       console.error('Error creating note:', error);
@@ -73,7 +78,7 @@ class NotesService {
   subscribeToNotes(userId: string, callback: (notes: Note[]) => void) {
     const queryRef = firestoreService.query(
       this.notesCollection,
-      firestoreService.where('userId', '==', userId)
+      firestoreService.where('userId', '==', userId),
     );
 
     return firestoreService.onSnapshot(
@@ -86,12 +91,14 @@ class NotesService {
         })) as Note[];
 
         // Sort in memory to avoid index requirement
-        const sortedNotes = notes.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        const sortedNotes = notes.sort(
+          (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+        );
         callback(sortedNotes);
       },
       (error: any) => {
         console.error('Error in notes subscription:', error);
-      }
+      },
     );
   }
 }

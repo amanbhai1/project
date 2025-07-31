@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService, AuthUser } from '@/services/firebaseService';
-import { offlineDemoService, OFFLINE_DEMO_USER } from '@/services/offlineDemoService';
+import {
+  offlineDemoService,
+  OFFLINE_DEMO_USER,
+} from '@/services/offlineDemoService';
 import { Platform } from 'react-native';
 
 // Define a universal user type
@@ -33,15 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    
+
     // Check if we should start in offline mode
     const initializeAuth = async () => {
       try {
         // Check if authentication services are available
         const authAvailable = await authService.isAuthAvailable();
-        
+
         if (!authAvailable) {
-          console.log('Firebase auth not available, checking for offline demo...');
+          console.log(
+            'Firebase auth not available, checking for offline demo...',
+          );
           // Check if we have an offline demo session
           const offlineUser = await checkOfflineDemoSession();
           if (offlineUser && mounted) {
@@ -59,8 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Convert Firebase user to our universal user format
               const appUser: AppUser = {
                 uid: firebaseUser.uid,
-                email: firebaseUser.email || (firebaseUser.isAnonymous ? 'demo@notes-app.com' : null),
-                displayName: firebaseUser.displayName || (firebaseUser.isAnonymous ? 'Demo User' : null),
+                email:
+                  firebaseUser.email ||
+                  (firebaseUser.isAnonymous ? 'demo@notes-app.com' : null),
+                displayName:
+                  firebaseUser.displayName ||
+                  (firebaseUser.isAnonymous ? 'Demo User' : null),
                 emailVerified: firebaseUser.emailVerified,
                 isAnonymous: firebaseUser.isAnonymous,
                 isDemo: firebaseUser.isAnonymous,
@@ -132,7 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsOfflineMode(false);
         return;
       } catch (firebaseError) {
-        console.log('Firebase demo failed, starting offline demo:', firebaseError);
+        console.log(
+          'Firebase demo failed, starting offline demo:',
+          firebaseError,
+        );
       }
 
       // If Firebase fails, start offline demo
@@ -140,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const demoUser: AppUser = {
         ...OFFLINE_DEMO_USER,
       };
-      
+
       setUser(demoUser);
       setIsOfflineMode(true);
     } catch (error: any) {
@@ -169,15 +181,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      isOfflineMode,
-      signIn, 
-      signUp, 
-      signInOfflineDemo,
-      signOut 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isOfflineMode,
+        signIn,
+        signUp,
+        signInOfflineDemo,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

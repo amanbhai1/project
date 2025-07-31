@@ -190,7 +190,11 @@ export default function AddNoteScreen() {
       );
     } else {
       if (mountedRef.current) {
-        router.back();
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace('/(tabs)/');
+        }
       }
     }
   };

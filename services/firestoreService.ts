@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
-// Platform-specific Firestore service
+let firestoreService: any;
+
 if (Platform.OS === 'web') {
   // Web Firebase v9+ imports
   const {
@@ -20,7 +21,7 @@ if (Platform.OS === 'web') {
   
   const { firestore } = require('../config/firebase.web');
 
-  export const firestoreService = {
+  firestoreService = {
     collection: (path: string) => collection(firestore, path),
     
     doc: (collectionRef: any, id?: string) => 
@@ -54,7 +55,7 @@ if (Platform.OS === 'web') {
   // React Native Firebase
   const firestore = require('@react-native-firebase/firestore').default;
 
-  export const firestoreService = {
+  firestoreService = {
     collection: (path: string) => firestore().collection(path),
     
     doc: (collectionRef: any, id?: string) => 
@@ -84,3 +85,5 @@ if (Platform.OS === 'web') {
     Timestamp: firestore.Timestamp
   };
 }
+
+export { firestoreService };

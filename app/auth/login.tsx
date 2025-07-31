@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, Text, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { router } from 'expo-router';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { Snackbar } from '@/components/ui/Snackbar';
@@ -78,11 +78,14 @@ export default function LoginScreen() {
               <Text style={[styles.signupText, { color: colors.onSurfaceVariant }]}>
                 Don't have an account?{' '}
               </Text>
-              <Link href="/auth/register" asChild>
+              <TouchableOpacity 
+                onPress={() => router.push('/auth/register')}
+                style={styles.linkContainer}
+              >
                 <Text style={[styles.signupLink, { color: colors.primary }]}>
                   Sign up
                 </Text>
-              </Link>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -136,6 +139,10 @@ const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: 14,
+  },
+  linkContainer: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
   },
   signupLink: {
     fontSize: 14,

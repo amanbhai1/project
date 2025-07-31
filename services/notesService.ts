@@ -87,6 +87,11 @@ class NotesService {
       },
       (error: any) => {
         console.error('Error in notes subscription:', error);
+        // If it's an index error, throw a specific error that can be caught
+        if (error.code === 'failed-precondition' && error.message.includes('index')) {
+          throw new Error('FIRESTORE_INDEX_REQUIRED');
+        }
+        throw error;
       }
     );
   }

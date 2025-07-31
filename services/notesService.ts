@@ -1,6 +1,5 @@
 import { Note, CreateNoteData, UpdateNoteData } from '@/types/Note';
-import { firestoreService } from './firestoreService';
-import { Platform } from 'react-native';
+import { firestoreService } from './firebaseService';
 
 class NotesService {
   private get notesCollection() {
@@ -9,37 +8,19 @@ class NotesService {
 
   async getNotes(userId: string): Promise<Note[]> {
     try {
-      let queryRef;
-      
-      if (Platform.OS === 'web') {
-        queryRef = firestoreService.query(
-          this.notesCollection,
-          firestoreService.where('userId', '==', userId),
-          firestoreService.orderBy('timestamp', 'desc')
-        );
-      } else {
-        queryRef = firestoreService.orderBy(
-          firestoreService.where(this.notesCollection, 'userId', '==', userId),
-          'timestamp',
-          'desc'
-        );
-      }
+      const queryRef = firestoreService.query(
+        this.notesCollection,
+        firestoreService.where('userId', '==', userId),
+        firestoreService.orderBy('timestamp', 'desc')
+      );
 
       const snapshot = await firestoreService.getDocs(queryRef);
       
-      if (Platform.OS === 'web') {
-        return snapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date(),
-        })) as Note[];
-      } else {
-        return snapshot.docs.map((doc: any) => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date(),
-        })) as Note[];
-      }
+      return snapshot.docs.map((doc: any) => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate() || new Date(),
+      })) as Note[];
     } catch (error) {
       console.error('Error fetching notes:', error);
       throw error;
@@ -54,13 +35,8 @@ class NotesService {
         timestamp: firestoreService.serverTimestamp(),
       };
 
-      if (Platform.OS === 'web') {
-        const docRef = await firestoreService.addDoc(this.notesCollection, docData);
-        return docRef.id;
-      } else {
-        const docRef = await firestoreService.addDoc(this.notesCollection, docData);
-        return docRef.id;
-      }
+      const docRef = await firestoreService.addDoc(this.notesCollection, docData);
+      return docRef.id;
     } catch (error) {
       console.error('Error creating note:', error);
       throw error;
@@ -93,21 +69,11 @@ class NotesService {
   }
 
   subscribeToNotes(userId: string, callback: (notes: Note[]) => void) {
-    let queryRef;
-    
-    if (Platform.OS === 'web') {
-      queryRef = firestoreService.query(
-        this.notesCollection,
-        firestoreService.where('userId', '==', userId),
-        firestoreService.orderBy('timestamp', 'desc')
-      );
-    } else {
-      queryRef = firestoreService.orderBy(
-        firestoreService.where(this.notesCollection, 'userId', '==', userId),
-        'timestamp',
-        'desc'
-      );
-    }
+    const queryRef = firestoreService.query(
+      this.notesCollection,
+      firestoreService.where('userId', '==', userId),
+      firestoreService.orderBy('timestamp', 'desc')
+    );
 
     return firestoreService.onSnapshot(
       queryRef,

@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 
-// Platform-specific auth service
+let authService: any;
+let AuthUser: any;
+
 if (Platform.OS === 'web') {
   // Web Firebase v9+ imports
   const {
@@ -13,7 +15,7 @@ if (Platform.OS === 'web') {
   
   const { auth } = require('../config/firebase.web');
 
-  export const authService = {
+  authService = {
     signIn: (email: string, password: string) => 
       signInWithEmailAndPassword(auth, email, password),
     
@@ -28,13 +30,13 @@ if (Platform.OS === 'web') {
     getCurrentUser: () => auth.currentUser
   };
 
-  export type AuthUser = User;
+  AuthUser = User;
 
 } else {
   // React Native Firebase
   const auth = require('@react-native-firebase/auth').default;
 
-  export const authService = {
+  authService = {
     signIn: (email: string, password: string) => 
       auth().signInWithEmailAndPassword(email, password),
     
@@ -49,5 +51,9 @@ if (Platform.OS === 'web') {
     getCurrentUser: () => auth().currentUser
   };
 
-  export type AuthUser = import('@react-native-firebase/auth').FirebaseAuthTypes.User;
+  // For React Native Firebase, we'll use the FirebaseAuthTypes.User
+  AuthUser = null; // Will be typed properly in usage
 }
+
+export { authService };
+export type { AuthUser };

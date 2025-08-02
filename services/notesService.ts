@@ -1,24 +1,14 @@
-import firestore from '@react-native-firebase/firestore';
 import { Note, CreateNoteData, UpdateNoteData } from '@/types/Note';
-import '@/config/firebaseConfig'; // Ensure Firebase is initialized
+
+// Mock data storage for demo purposes
+let mockNotes: Note[] = [];
+let nextId = 1;
 
 class NotesService {
-  private get collection() {
-    return firestore().collection('notes');
-  }
-
   async getNotes(userId: string): Promise<Note[]> {
     try {
-      const snapshot = await this.collection
-        .where('userId', '==', userId)
-        .orderBy('timestamp', 'desc')
-        .get();
-
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp.toDate(),
-      })) as Note[];
+      // Filter notes by userId for the mock data
+      return mockNotes.filter(note => note.userId === userId);
     } catch (error) {
       console.error('Error fetching notes:', error);
       throw error;
@@ -27,12 +17,14 @@ class NotesService {
 
   async createNote(userId: string, noteData: CreateNoteData): Promise<string> {
     try {
-      const docRef = await this.collection.add({
+      const newNote: Note = {
+        id: `note-${nextId++}`,
         ...noteData,
         userId,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-      });
-      return docRef.id;
+        timestamp: new Date(),
+      };
+      mockNotes.push(newNote);
+      return newNote.id;
     } catch (error) {
       console.error('Error creating note:', error);
       throw error;
@@ -41,10 +33,14 @@ class NotesService {
 
   async updateNote(noteId: string, noteData: UpdateNoteData): Promise<void> {
     try {
-      await this.collection.doc(noteId).update({
-        ...noteData,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-      });
+      const noteIndex = mockNotes.findIndex(note => note.id === noteId);
+      if (noteIndex !== -1) {
+        mockNotes[noteIndex] = {
+          ...mockNotes[noteIndex],
+          ...noteData,
+          timestamp: new Date(),
+        };
+      }
     } catch (error) {
       console.error('Error updating note:', error);
       throw error;
@@ -53,7 +49,7 @@ class NotesService {
 
   async deleteNote(noteId: string): Promise<void> {
     try {
-      await this.collection.doc(noteId).delete();
+      mockNotes = mockNotes.filter(note => note.id !== noteId);
     } catch (error) {
       console.error('Error deleting note:', error);
       throw error;
@@ -61,23 +57,16 @@ class NotesService {
   }
 
   subscribeToNotes(userId: string, callback: (notes: Note[]) => void) {
-    return this.collection
-      .where('userId', '==', userId)
-      .orderBy('timestamp', 'desc')
-      .onSnapshot(
-        (snapshot) => {
-          const notes = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().timestamp?.toDate() || new Date(),
-          })) as Note[];
-          callback(notes);
-        },
-        (error) => {
-          console.error('Error in notes subscription:', error);
-        }
-      );
+    // For demo purposes, call the callback immediately with current notes
+    const userNotes = mockNotes.filter(note => note.userId === userId);
+    callback(userNotes);
+    
+    // Return a mock unsubscribe function
+    return () => {
+      console.log('Unsubscribed from notes');
+    };
   }
+}
 }
 
 export const notesService = new NotesService();

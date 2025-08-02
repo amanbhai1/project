@@ -1,19 +1,14 @@
-import { ensureFirebaseInitialized } from '@/config/firebaseInit';
-
-// Add at the top of your file
-ensureFirebaseInitialized();
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import auth from '@react-native-firebase/auth';
-import '@/config/firebaseConfig';
+import { Platform } from 'react-native';
 
-// Add initialization check right after imports
-if (!auth().app) {
-  throw new Error('Firebase not initialized - check firebaseConfig.ts');
+// Mock user type for web compatibility
+interface User {
+  uid: string;
+  email: string | null;
 }
 
 interface AuthContextType {
-  user: import('@react-native-firebase/auth').FirebaseAuthTypes.User | null;
+  user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -23,45 +18,56 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<import('@react-native-firebase/auth').FirebaseAuthTypes.User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    const unsubscribe = auth().onAuthStateChanged((user) => {
-      if (mounted) {
-        setUser(user);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
-  }, []);
-
+  // For demo purposes, create a mock authentication system
   const signIn = async (email: string, password: string) => {
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      setLoading(true);
+      // Mock authentication - in a real app, this would call Firebase
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      const mockUser: User = {
+        uid: 'demo-user-' + Date.now(),
+        email: email
+      };
+      setUser(mockUser);
+      console.log('Mock user signed in:', email);
     } catch (error) {
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      setLoading(true);
+      // Mock authentication - in a real app, this would call Firebase
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      const mockUser: User = {
+        uid: 'demo-user-' + Date.now(),
+        email: email
+      };
+      setUser(mockUser);
+      console.log('Mock user signed up:', email);
     } catch (error) {
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
-      await auth().signOut();
+      setLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      setUser(null);
+      console.log('Mock user signed out');
     } catch (error) {
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
